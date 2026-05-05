@@ -15,9 +15,7 @@ export default function Header() {
       <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex-shrink-0">
-          <span className="text-xl font-semibold tracking-tight text-[#1A1918]">
-            релад<span className="font-black text-[#9E8B45]">а</span>
-          </span>
+          <img src="/релада_logo_black.png" alt="релада" className="h-8 w-auto" />
         </div>
 
         {/* Stage switcher */}
