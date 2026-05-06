@@ -9,6 +9,7 @@ import Partner from './pages/Partner'
 import Practice from './pages/Practice'
 import Methodology from './pages/Methodology'
 import Auth from './pages/Auth'
+import ResetPassword from './pages/ResetPassword'
 import Profile from './pages/Profile'
 import Settings from './pages/Settings'
 
@@ -26,6 +27,7 @@ function AppLayout() {
   if (!user) {
     return (
       <Routes>
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="*" element={<Auth />} />
       </Routes>
     )
