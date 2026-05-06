@@ -9,6 +9,8 @@ import Partner from './pages/Partner'
 import Practice from './pages/Practice'
 import Methodology from './pages/Methodology'
 import Auth from './pages/Auth'
+import Profile from './pages/Profile'
+import Settings from './pages/Settings'
 
 function AppLayout() {
   const { user, loading } = useAuth()
@@ -41,6 +43,8 @@ function AppLayout() {
             <Route path="/partner" element={<Partner />} />
             <Route path="/practice" element={<Practice />} />
             <Route path="/methodology" element={<Methodology />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
