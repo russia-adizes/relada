@@ -1,4 +1,5 @@
 import { useStage } from '../contexts/StageContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const STAGES = [
   { id: 1 as const, label: 'Тип' },
@@ -9,6 +10,7 @@ const STAGES = [
 
 export default function Header() {
   const { stage, setStage, userEmail, userName } = useStage()
+  const { signOut } = useAuth()
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-[#E8E4DC]">
@@ -40,9 +42,15 @@ export default function Header() {
           <span className="text-xs text-[#6B6560] hidden sm:block">{userEmail}</span>
           <div className="w-8 h-8 rounded-full border-2 border-[#9E8B45] bg-[#F5F2EC] flex items-center justify-center">
             <span className="text-xs font-semibold text-[#9E8B45]">
-              {userName.charAt(0)}
+              {userName.charAt(0).toUpperCase()}
             </span>
           </div>
+          <button
+            onClick={signOut}
+            className="text-xs text-[#6B6560] hover:text-[#1A1918] transition-colors hidden sm:block"
+          >
+            Выйти
+          </button>
         </div>
       </div>
     </header>

@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
+import { useAuth } from './AuthContext'
 
 type Stage = 1 | 2 | 3 | 4
 
@@ -13,14 +15,43 @@ interface StageContextValue {
 const StageContext = createContext<StageContextValue | null>(null)
 
 export function StageProvider({ children }: { children: React.ReactNode }) {
-  const [stage, setStage] = useState<Stage>(1)
+  const { user } = useAuth()
+  const [stage, setStageState] = useState<Stage>(1)
+  const [userName, setUserName] = useState('')
+  const [personalityType, setPersonalityType] = useState('')
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('profiles')
+      .select('name, personality_type, stage')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          if (data.name) setUserName(data.name)
+          if (data.personality_type) setPersonalityType(data.personality_type)
+          if (data.stage) setStageState(data.stage as Stage)
+        }
+      })
+  }, [user])
+
+  async function setStage(newStage: Stage) {
+    setStageState(newStage)
+    if (user) {
+      await supabase
+        .from('profiles')
+        .update({ stage: newStage })
+        .eq('id', user.id)
+    }
+  }
 
   const value: StageContextValue = {
     stage,
     setStage,
-    userName: 'Анна',
-    personalityType: 'pAeI',
-    userEmail: 'anna@mail.ru',
+    userName: userName || user?.email?.split('@')[0] || '',
+    personalityType,
+    userEmail: user?.email || '',
   }
 
   return (
