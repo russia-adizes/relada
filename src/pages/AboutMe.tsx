@@ -37,8 +37,30 @@ const OVERLOADS = [
 ]
 
 export default function AboutMe() {
-  const { stage } = useStage()
+  const { stage, personalityType } = useStage()
   const [activeTab, setActiveTab] = useState<TabId>('type')
+
+  if (!personalityType) {
+    return (
+      <div className="card text-center py-12 space-y-4">
+        <div className="w-16 h-16 rounded-full bg-[#9E8B45]/10 flex items-center justify-center mx-auto">
+          <span className="text-2xl">🔍</span>
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-[#1A1918]">Здесь будет ваш психологический портрет</h2>
+          <p className="text-sm text-[#6B6560] mt-2 max-w-xs mx-auto leading-relaxed">
+            Пройдите тест PAEI, чтобы узнать свой тип личности, стиль в отношениях и роль в семье.
+          </p>
+        </div>
+        <button
+          onClick={() => window.location.href = '/test'}
+          className="btn-primary mx-auto"
+        >
+          Пройти тест →
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
