@@ -414,8 +414,9 @@ export const QUESTIONS: Question[] = [
   },
 ]
 
-const CAPITAL_THRESHOLD = 27
-const LOWERCASE_THRESHOLD = 14
+// Thresholds for 40-question format (avg 10 per type). Pending specialist confirmation.
+const CAPITAL_THRESHOLD = 12
+const LOWERCASE_THRESHOLD = 7
 
 export function calculatePaeiType(scores: Record<PaeiType, number>): string {
   return (['P', 'A', 'E', 'I'] as PaeiType[])
