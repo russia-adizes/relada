@@ -15,19 +15,79 @@ function shuffleArray<T>(arr: T[], seed: number): T[] {
   return result
 }
 
+const TYPE_LABELS: Record<string, string> = {
+  P: 'Производитель',
+  A: 'Администратор',
+  E: 'Предприниматель',
+  I: 'Интегратор',
+}
+
+function ResultScreen({
+  personalityType,
+  scores,
+  onContinue,
+}: {
+  personalityType: string
+  scores: Record<PaeiType, number>
+  onContinue: () => void
+}) {
+  const dominant = (['P', 'A', 'E', 'I'] as PaeiType[]).reduce((a, b) =>
+    scores[a] >= scores[b] ? a : b
+  )
+
+  return (
+    <div className="min-h-screen bg-[#FAF8F4] flex flex-col items-center justify-center px-4 py-10 text-center">
+      <div className="w-20 h-20 rounded-full bg-[#9E8B45]/10 flex items-center justify-center mb-6">
+        <span className="text-3xl">🎯</span>
+      </div>
+
+      <p className="text-sm text-[#6B6560] mb-1">Ваш тип личности</p>
+      <h1 className="text-5xl font-bold text-[#9E8B45] tracking-widest mb-2">
+        {personalityType}
+      </h1>
+      <p className="text-base font-semibold text-[#1A1918] mb-6">
+        {TYPE_LABELS[dominant]}
+      </p>
+
+      <div className="w-full max-w-xs bg-white rounded-2xl border border-[#E8E4DC] p-4 mb-8 space-y-2">
+        {(['P', 'A', 'E', 'I'] as PaeiType[]).map((type) => (
+          <div key={type} className="flex items-center gap-3">
+            <span className="w-5 text-sm font-bold text-[#9E8B45]">{type}</span>
+            <div className="flex-1 h-2 bg-[#F0EDE6] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#9E8B45] rounded-full transition-all"
+                style={{ width: `${(scores[type] / 40) * 100}%` }}
+              />
+            </div>
+            <span className="text-sm text-[#6B6560] w-6 text-right">{scores[type]}</span>
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={onContinue}
+        className="w-full max-w-xs py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors"
+      >
+        Открыть мой профиль →
+      </button>
+    </div>
+  )
+}
+
 export default function Test() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { refreshProfile } = useStage()
 
   const [currentQ, setCurrentQ] = useState(0)
-  // rankings[i] = rank 1-4, or 0 = unranked
   const [rankings, setRankings] = useState<number[]>([0, 0, 0, 0])
-  // allAnswers[questionIndex] = type of #1 ranked answer
   const [allAnswers, setAllAnswers] = useState<(PaeiType | null)[]>(
     new Array(QUESTIONS.length).fill(null)
   )
-  const [saving, setSaving] = useState(false)
+  const [result, setResult] = useState<{
+    personalityType: string
+    scores: Record<PaeiType, number>
+  } | null>(null)
 
   const question = QUESTIONS[currentQ]
 
@@ -39,7 +99,6 @@ export default function Test() {
   function handleCardClick(index: number) {
     const current = rankings[index]
     if (current > 0) {
-      // Unrank: remove this rank and shift higher ranks down
       setRankings((prev) =>
         prev.map((r, i) => {
           if (i === index) return 0
@@ -48,7 +107,6 @@ export default function Test() {
         })
       )
     } else {
-      // Assign next rank
       const nextRank = Math.max(...rankings) + 1
       if (nextRank > 4) return
       setRankings((prev) => prev.map((r, i) => (i === index ? nextRank : r)))
@@ -56,7 +114,6 @@ export default function Test() {
   }
 
   function handleNext() {
-    // Find the answer ranked #1
     const rank1Index = rankings.findIndex((r) => r === 1)
     const topAnswer = shuffledAnswers[rank1Index]
 
@@ -72,27 +129,40 @@ export default function Test() {
     }
   }
 
-  async function finishTest(answers: PaeiType[]) {
-    setSaving(true)
+  function finishTest(answers: PaeiType[]) {
     const scores: Record<PaeiType, number> = { P: 0, A: 0, E: 0, I: 0 }
-    for (const type of answers) {
-      scores[type]++
-    }
+    for (const type of answers) scores[type]++
     const personalityType = calculatePaeiType(scores)
 
+    // Show result immediately, save in background
+    setResult({ personalityType, scores })
+
     if (user) {
-      await supabase
+      supabase
         .from('profiles')
         .update({ personality_type: personalityType })
         .eq('id', user.id)
-      await refreshProfile()
+        .then(() => refreshProfile())
     }
+  }
 
-    navigate('/about-me', { state: { justFinishedTest: true, personalityType, scores } })
+  async function handleContinue() {
+    await refreshProfile()
+    navigate('/about-me')
   }
 
   const allRanked = rankings.every((r) => r > 0)
-  const progress = ((currentQ) / QUESTIONS.length) * 100
+  const progress = (currentQ / QUESTIONS.length) * 100
+
+  if (result) {
+    return (
+      <ResultScreen
+        personalityType={result.personalityType}
+        scores={result.scores}
+        onContinue={handleContinue}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF8F4] flex flex-col">
@@ -186,19 +256,15 @@ export default function Test() {
         <div className="max-w-xl mx-auto">
           <button
             onClick={handleNext}
-            disabled={!allRanked || saving}
+            disabled={!allRanked}
             className={[
               'w-full py-3.5 rounded-xl font-semibold text-sm transition-all',
-              allRanked && !saving
+              allRanked
                 ? 'bg-[#9E8B45] text-white hover:bg-[#8A7A3A]'
                 : 'bg-[#E8E4DC] text-[#6B6560] cursor-not-allowed',
             ].join(' ')}
           >
-            {saving
-              ? 'Сохраняем...'
-              : currentQ < QUESTIONS.length - 1
-              ? 'Далее →'
-              : 'Завершить тест'}
+            {currentQ < QUESTIONS.length - 1 ? 'Далее →' : 'Завершить тест'}
           </button>
         </div>
       </div>
