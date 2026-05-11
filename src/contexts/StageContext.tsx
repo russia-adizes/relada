@@ -10,6 +10,7 @@ interface StageContextValue {
   userName: string
   personalityType: string
   userEmail: string
+  refreshProfile: () => Promise<void>
 }
 
 const StageContext = createContext<StageContextValue | null>(null)
@@ -20,20 +21,22 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
   const [userName, setUserName] = useState('')
   const [personalityType, setPersonalityType] = useState('')
 
-  useEffect(() => {
+  async function refreshProfile() {
     if (!user) return
-    supabase
+    const { data } = await supabase
       .from('profiles')
       .select('name, personality_type, stage')
       .eq('id', user.id)
       .single()
-      .then(({ data }) => {
-        if (data) {
-          if (data.name) setUserName(data.name)
-          if (data.personality_type) setPersonalityType(data.personality_type)
-          if (data.stage) setStageState(data.stage as Stage)
-        }
-      })
+    if (data) {
+      if (data.name) setUserName(data.name)
+      if (data.personality_type) setPersonalityType(data.personality_type)
+      if (data.stage) setStageState(data.stage as Stage)
+    }
+  }
+
+  useEffect(() => {
+    refreshProfile()
   }, [user])
 
   async function setStage(newStage: Stage) {
@@ -52,6 +55,7 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
     userName: userName || user?.email?.split('@')[0] || '',
     personalityType,
     userEmail: user?.email || '',
+    refreshProfile,
   }
 
   return (

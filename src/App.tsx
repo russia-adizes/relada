@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { StageProvider } from './contexts/StageContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Header from './components/Header'
@@ -12,9 +12,12 @@ import Auth from './pages/Auth'
 import ResetPassword from './pages/ResetPassword'
 import Profile from './pages/Profile'
 import Settings from './pages/Settings'
+import Test from './pages/Test'
 
 function AppLayout() {
   const { user, loading } = useAuth()
+  const location = useLocation()
+  const isTestPage = location.pathname === '/test'
 
   if (loading) {
     return (
@@ -36,9 +39,9 @@ function AppLayout() {
   return (
     <StageProvider>
       <div className="min-h-screen bg-white">
-        <Header />
-        <Navigation />
-        <main className="max-w-3xl mx-auto px-4 py-6">
+        {!isTestPage && <Header />}
+        {!isTestPage && <Navigation />}
+        <main className={isTestPage ? '' : 'max-w-3xl mx-auto px-4 py-6'}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about-me" element={<AboutMe />} />
@@ -47,6 +50,7 @@ function AppLayout() {
             <Route path="/methodology" element={<Methodology />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/test" element={<Test />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
