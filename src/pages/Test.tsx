@@ -145,13 +145,22 @@ export default function Test() {
     // Show result screen
     setResult({ personalityType, scores })
 
-    // Save to Supabase in background
+    // Save to Supabase
     if (user) {
       supabase
         .from('profiles')
-        .upsert({ id: user.id, personality_type: personalityType })
+        .update({ personality_type: personalityType })
+        .eq('id', user.id)
         .then(({ error }) => {
-          if (error) console.error('Supabase save failed:', error)
+          if (error) {
+            // If update failed (no row yet), try upsert
+            supabase
+              .from('profiles')
+              .upsert({ id: user.id, personality_type: personalityType })
+              .then(({ error: e2 }) => {
+                if (e2) console.error('Supabase save failed:', e2)
+              })
+          }
         })
     }
   }
