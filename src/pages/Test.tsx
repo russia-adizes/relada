@@ -77,7 +77,7 @@ function ResultScreen({
 export default function Test() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { refreshProfile } = useStage()
+  const { setPersonalityTypeDirect } = useStage()
 
   const [currentQ, setCurrentQ] = useState(0)
   const [rankings, setRankings] = useState<number[]>([0, 0, 0, 0])
@@ -134,20 +134,22 @@ export default function Test() {
     for (const type of answers) scores[type]++
     const personalityType = calculatePaeiType(scores)
 
-    // Show result immediately, save in background
+    // Update context immediately so About Me page sees the result right away
+    setPersonalityTypeDirect(personalityType)
+
+    // Show result screen
     setResult({ personalityType, scores })
 
+    // Save to Supabase in background
     if (user) {
       supabase
         .from('profiles')
         .update({ personality_type: personalityType })
         .eq('id', user.id)
-        .then(() => refreshProfile())
     }
   }
 
-  async function handleContinue() {
-    await refreshProfile()
+  function handleContinue() {
     navigate('/about-me')
   }
 

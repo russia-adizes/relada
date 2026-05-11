@@ -11,6 +11,7 @@ interface StageContextValue {
   personalityType: string
   userEmail: string
   refreshProfile: () => Promise<void>
+  setPersonalityTypeDirect: (type: string) => void
 }
 
 const StageContext = createContext<StageContextValue | null>(null)
@@ -56,6 +57,7 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
     personalityType,
     userEmail: user?.email || '',
     refreshProfile,
+    setPersonalityTypeDirect: setPersonalityType,
   }
 
   return (
