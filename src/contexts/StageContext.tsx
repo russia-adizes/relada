@@ -24,12 +24,18 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
 
   async function refreshProfile() {
     if (!user) return
+
+    // Ensure we have a valid session before querying
+    const { data: { session } } = await supabase.auth.getSession()
+    console.log('[refreshProfile] session:', !!session, 'user:', user.id)
+    if (!session) return
+
     const { data, error } = await supabase
       .from('profiles')
       .select('name, personality_type, stage')
       .eq('id', user.id)
       .maybeSingle()
-    console.log('[refreshProfile] user.id:', user.id, 'data:', data, 'error:', error)
+    console.log('[refreshProfile] data:', data, 'error:', error?.message)
     const cached = localStorage.getItem(`relada_pt_${user.id}`)
     if (data) {
       if (data.name) setUserName(data.name)
