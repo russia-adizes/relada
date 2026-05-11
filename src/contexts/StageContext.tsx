@@ -29,17 +29,19 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
       .select('name, personality_type, stage')
       .eq('id', user.id)
       .maybeSingle()
+    const cached = localStorage.getItem(`relada_pt_${user.id}`)
     if (data) {
       if (data.name) setUserName(data.name)
       if (data.personality_type) {
         setPersonalityType(data.personality_type)
         localStorage.setItem(`relada_pt_${user.id}`, data.personality_type)
+      } else if (cached) {
+        // Profile row exists but personality_type is null — use localStorage
+        setPersonalityType(cached)
       }
       if (data.stage) setStageState(data.stage as Stage)
-    } else {
-      // Fallback to localStorage if Supabase has no data yet
-      const cached = localStorage.getItem(`relada_pt_${user.id}`)
-      if (cached) setPersonalityType(cached)
+    } else if (cached) {
+      setPersonalityType(cached)
     }
   }
 
