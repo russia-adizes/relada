@@ -42,7 +42,7 @@ export default function HeroBlock() {
       </p>
 
       <div className="flex flex-wrap gap-3">
-        <button className="btn-primary">
+        <button className="btn-primary" onClick={() => navigate('/about-me')}>
           Открыть мой тип личности →
         </button>
         <button className="btn-outline">
