@@ -24,11 +24,12 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
 
   async function refreshProfile() {
     if (!user) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('name, personality_type, stage')
       .eq('id', user.id)
       .maybeSingle()
+    console.log('[refreshProfile] user.id:', user.id, 'data:', data, 'error:', error)
     const cached = localStorage.getItem(`relada_pt_${user.id}`)
     if (data) {
       if (data.name) setUserName(data.name)
