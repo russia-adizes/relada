@@ -137,16 +137,21 @@ export default function Test() {
     // Update context immediately so About Me page sees the result right away
     setPersonalityTypeDirect(personalityType)
 
+    // Persist to localStorage so refresh doesn't lose data
+    if (user) {
+      localStorage.setItem(`relada_pt_${user.id}`, personalityType)
+    }
+
     // Show result screen
     setResult({ personalityType, scores })
 
-    // Save to Supabase (upsert creates row if it doesn't exist yet)
+    // Save to Supabase in background
     if (user) {
       supabase
         .from('profiles')
         .upsert({ id: user.id, personality_type: personalityType })
         .then(({ error }) => {
-          if (error) console.error('Failed to save personality type:', error)
+          if (error) console.error('Supabase save failed:', error)
         })
     }
   }
