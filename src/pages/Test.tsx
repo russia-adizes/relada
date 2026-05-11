@@ -140,12 +140,14 @@ export default function Test() {
     // Show result screen
     setResult({ personalityType, scores })
 
-    // Save to Supabase in background
+    // Save to Supabase (upsert creates row if it doesn't exist yet)
     if (user) {
       supabase
         .from('profiles')
-        .update({ personality_type: personalityType })
-        .eq('id', user.id)
+        .upsert({ id: user.id, personality_type: personalityType })
+        .then(({ error }) => {
+          if (error) console.error('Failed to save personality type:', error)
+        })
     }
   }
 

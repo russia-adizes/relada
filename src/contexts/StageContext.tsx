@@ -28,7 +28,7 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
       .from('profiles')
       .select('name, personality_type, stage')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
     if (data) {
       if (data.name) setUserName(data.name)
       if (data.personality_type) setPersonalityType(data.personality_type)
