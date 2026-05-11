@@ -25,10 +25,12 @@ const TYPE_LABELS: Record<string, string> = {
 function ResultScreen({
   personalityType,
   scores,
+  saveError,
   onContinue,
 }: {
   personalityType: string
   scores: Record<PaeiType, number>
+  saveError?: string
   onContinue: () => void
 }) {
   const dominant = (['P', 'A', 'E', 'I'] as PaeiType[]).reduce((a, b) =>
@@ -64,6 +66,12 @@ function ResultScreen({
         ))}
       </div>
 
+      {saveError && (
+        <p className="text-xs text-red-500 max-w-xs mb-4">
+          Ошибка сохранения: {saveError}
+        </p>
+      )}
+
       <button
         onClick={onContinue}
         className="w-full max-w-xs py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors"
@@ -87,6 +95,7 @@ export default function Test() {
   const [result, setResult] = useState<{
     personalityType: string
     scores: Record<PaeiType, number>
+    saveError?: string
   } | null>(null)
 
   const question = QUESTIONS[currentQ]
@@ -129,39 +138,40 @@ export default function Test() {
     }
   }
 
-  function finishTest(answers: PaeiType[]) {
+  async function finishTest(answers: PaeiType[]) {
     const scores: Record<PaeiType, number> = { P: 0, A: 0, E: 0, I: 0 }
     for (const type of answers) scores[type]++
     const personalityType = calculatePaeiType(scores)
 
-    // Update context immediately so About Me page sees the result right away
     setPersonalityTypeDirect(personalityType)
 
-    // Persist to localStorage so refresh doesn't lose data
-    if (user) {
-      localStorage.setItem(`relada_pt_${user.id}`, personalityType)
+    // Persist to localStorage immediately
+    const { data: { session } } = await supabase.auth.getSession()
+    const uid = session?.user?.id ?? user?.id
+    if (uid) {
+      localStorage.setItem(`relada_pt_${uid}`, personalityType)
     }
 
-    // Show result screen
+    // Show result screen right away
     setResult({ personalityType, scores })
 
-    // Save to Supabase
-    if (user) {
-      supabase
+    // Save to Supabase and surface any error
+    if (uid) {
+      const { error } = await supabase
         .from('profiles')
         .update({ personality_type: personalityType })
-        .eq('id', user.id)
-        .then(({ error }) => {
-          if (error) {
-            // If update failed (no row yet), try upsert
-            supabase
-              .from('profiles')
-              .upsert({ id: user.id, personality_type: personalityType })
-              .then(({ error: e2 }) => {
-                if (e2) console.error('Supabase save failed:', e2)
-              })
-          }
-        })
+        .eq('id', uid)
+
+      if (error) {
+        const { error: e2 } = await supabase
+          .from('profiles')
+          .upsert({ id: uid, personality_type: personalityType })
+        if (e2) {
+          setResult((prev) =>
+            prev ? { ...prev, saveError: e2.message } : prev
+          )
+        }
+      }
     }
   }
 
@@ -177,6 +187,7 @@ export default function Test() {
       <ResultScreen
         personalityType={result.personalityType}
         scores={result.scores}
+        saveError={result.saveError}
         onContinue={handleContinue}
       />
     )
