@@ -8,6 +8,10 @@ export default function HeroBlock() {
   const navigate = useNavigate()
   const [showPaywall, setShowPaywall] = useState(false)
 
+  function scrollTo(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   if (!personalityType) {
     return (
       <div className="card space-y-4 text-center py-8">
@@ -48,12 +52,12 @@ export default function HeroBlock() {
         </p>
 
         <div className="flex flex-wrap gap-3">
-          <button className="btn-primary" onClick={() => navigate('/about-me')}>
+          <button className="btn-primary" onClick={() => scrollTo('about-me')}>
             Открыть мой тип личности →
           </button>
           <button
             className="btn-outline"
-            onClick={() => relationshipStyle ? navigate('/about-me') : setShowPaywall(true)}
+            onClick={() => relationshipStyle ? scrollTo('about-me') : setShowPaywall(true)}
           >
             Узнать стиль в отношениях
           </button>
