@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Check } from 'lucide-react'
-import { QUESTIONS, calculatePaeiType, type PaeiType } from '../data/paeiQuestions'
+import { QUESTIONS, PART1_END, calculatePaeiType, type PaeiType } from '../data/paeiQuestions'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { useStage } from '../contexts/StageContext'
@@ -22,16 +22,37 @@ const TYPE_LABELS: Record<string, string> = {
   I: 'Интегратор',
 }
 
-function ResultScreen({
+function ScoreBars({ scores, total }: { scores: Record<PaeiType, number>; total: number }) {
+  return (
+    <div className="w-full max-w-xs bg-white rounded-2xl border border-[#E8E4DC] p-4 mb-8 space-y-2">
+      {(['P', 'A', 'E', 'I'] as PaeiType[]).map((type) => (
+        <div key={type} className="flex items-center gap-3">
+          <span className="w-5 text-sm font-bold text-[#9E8B45]">{type}</span>
+          <div className="flex-1 h-2 bg-[#F0EDE6] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#9E8B45] rounded-full transition-all"
+              style={{ width: `${(scores[type] / total) * 100}%` }}
+            />
+          </div>
+          <span className="text-sm text-[#6B6560] w-6 text-right">{scores[type]}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function Part1ResultScreen({
   personalityType,
   scores,
   saveError,
   onContinue,
+  onFinish,
 }: {
   personalityType: string
   scores: Record<PaeiType, number>
   saveError?: string
   onContinue: () => void
+  onFinish: () => void
 }) {
   const dominant = (['P', 'A', 'E', 'I'] as PaeiType[]).reduce((a, b) =>
     scores[a] >= scores[b] ? a : b
@@ -51,20 +72,7 @@ function ResultScreen({
         {TYPE_LABELS[dominant]}
       </p>
 
-      <div className="w-full max-w-xs bg-white rounded-2xl border border-[#E8E4DC] p-4 mb-8 space-y-2">
-        {(['P', 'A', 'E', 'I'] as PaeiType[]).map((type) => (
-          <div key={type} className="flex items-center gap-3">
-            <span className="w-5 text-sm font-bold text-[#9E8B45]">{type}</span>
-            <div className="flex-1 h-2 bg-[#F0EDE6] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#9E8B45] rounded-full transition-all"
-                style={{ width: `${(scores[type] / 40) * 100}%` }}
-              />
-            </div>
-            <span className="text-sm text-[#6B6560] w-6 text-right">{scores[type]}</span>
-          </div>
-        ))}
-      </div>
+      <ScoreBars scores={scores} total={PART1_END} />
 
       {saveError && (
         <p className="text-xs text-red-500 max-w-xs mb-4">
@@ -74,6 +82,59 @@ function ResultScreen({
 
       <button
         onClick={onContinue}
+        className="w-full max-w-xs py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors mb-3"
+      >
+        Узнать стиль в отношениях →
+      </button>
+      <button
+        onClick={onFinish}
+        className="w-full max-w-xs py-3.5 rounded-xl border border-[#E8E4DC] text-[#6B6560] font-semibold text-sm hover:border-[#9E8B45] transition-colors"
+      >
+        Открыть мой профиль
+      </button>
+    </div>
+  )
+}
+
+function Part2ResultScreen({
+  relationshipStyle,
+  scores,
+  saveError,
+  onFinish,
+}: {
+  relationshipStyle: string
+  scores: Record<PaeiType, number>
+  saveError?: string
+  onFinish: () => void
+}) {
+  const dominant = (['P', 'A', 'E', 'I'] as PaeiType[]).reduce((a, b) =>
+    scores[a] >= scores[b] ? a : b
+  )
+
+  return (
+    <div className="min-h-screen bg-[#FAF8F4] flex flex-col items-center justify-center px-4 py-10 text-center">
+      <div className="w-20 h-20 rounded-full bg-[#9E8B45]/10 flex items-center justify-center mb-6">
+        <span className="text-3xl">💞</span>
+      </div>
+
+      <p className="text-sm text-[#6B6560] mb-1">Ваш стиль в отношениях</p>
+      <h1 className="text-5xl font-bold text-[#9E8B45] tracking-widest mb-2">
+        {relationshipStyle}
+      </h1>
+      <p className="text-base font-semibold text-[#1A1918] mb-6">
+        {TYPE_LABELS[dominant]}
+      </p>
+
+      <ScoreBars scores={scores} total={QUESTIONS.length - PART1_END} />
+
+      {saveError && (
+        <p className="text-xs text-red-500 max-w-xs mb-4">
+          Ошибка сохранения: {saveError}
+        </p>
+      )}
+
+      <button
+        onClick={onFinish}
         className="w-full max-w-xs py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors"
       >
         Открыть мой профиль →
@@ -85,15 +146,20 @@ function ResultScreen({
 export default function Test() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { setPersonalityTypeDirect } = useStage()
+  const { setPersonalityTypeDirect, setRelationshipStyleDirect } = useStage()
 
   const [currentQ, setCurrentQ] = useState(0)
   const [rankings, setRankings] = useState<number[]>([0, 0, 0, 0])
   const [allAnswers, setAllAnswers] = useState<(PaeiType | null)[]>(
     new Array(QUESTIONS.length).fill(null)
   )
-  const [result, setResult] = useState<{
+  const [part1Result, setPart1Result] = useState<{
     personalityType: string
+    scores: Record<PaeiType, number>
+    saveError?: string
+  } | null>(null)
+  const [part2Result, setPart2Result] = useState<{
+    relationshipStyle: string
     scores: Record<PaeiType, number>
     saveError?: string
   } | null>(null)
@@ -130,65 +196,101 @@ export default function Test() {
     updated[currentQ] = topAnswer.type
     setAllAnswers(updated)
 
-    if (currentQ < QUESTIONS.length - 1) {
+    if (currentQ === PART1_END - 1) {
+      finishPart1(updated.slice(0, PART1_END) as PaeiType[])
+    } else if (currentQ < QUESTIONS.length - 1) {
       setCurrentQ(currentQ + 1)
       setRankings([0, 0, 0, 0])
     } else {
-      finishTest(updated as PaeiType[])
+      finishPart2(updated.slice(PART1_END) as PaeiType[])
     }
   }
 
-  async function finishTest(answers: PaeiType[]) {
+  async function finishPart1(answers: PaeiType[]) {
     const scores: Record<PaeiType, number> = { P: 0, A: 0, E: 0, I: 0 }
     for (const type of answers) scores[type]++
-    const personalityType = calculatePaeiType(scores)
+    const personalityType = calculatePaeiType(scores, PART1_END)
 
     setPersonalityTypeDirect(personalityType)
 
-    // Persist to localStorage immediately
     const { data: { session } } = await supabase.auth.getSession()
     const uid = session?.user?.id ?? user?.id
-    if (uid) {
-      localStorage.setItem(`relada_pt_${uid}`, personalityType)
-    }
+    if (uid) localStorage.setItem(`relada_pt_${uid}`, personalityType)
 
-    // Show result screen right away
-    setResult({ personalityType, scores })
+    setPart1Result({ personalityType, scores })
 
-    // Save to Supabase and surface any error
     if (uid) {
       const { error } = await supabase
         .from('profiles')
         .update({ personality_type: personalityType })
         .eq('id', uid)
-
       if (error) {
         const { error: e2 } = await supabase
           .from('profiles')
           .upsert({ id: uid, personality_type: personalityType })
-        if (e2) {
-          setResult((prev) =>
-            prev ? { ...prev, saveError: e2.message } : prev
-          )
-        }
+        if (e2) setPart1Result((prev) => prev ? { ...prev, saveError: e2.message } : prev)
       }
     }
   }
 
-  function handleContinue() {
-    navigate('/about-me')
+  async function finishPart2(answers: PaeiType[]) {
+    const scores: Record<PaeiType, number> = { P: 0, A: 0, E: 0, I: 0 }
+    for (const type of answers) scores[type]++
+    const relationshipStyle = calculatePaeiType(scores, QUESTIONS.length - PART1_END)
+
+    setRelationshipStyleDirect(relationshipStyle)
+
+    const { data: { session } } = await supabase.auth.getSession()
+    const uid = session?.user?.id ?? user?.id
+    if (uid) localStorage.setItem(`relada_rs_${uid}`, relationshipStyle)
+
+    setPart2Result({ relationshipStyle, scores })
+
+    if (uid) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ relationship_style: relationshipStyle })
+        .eq('id', uid)
+      if (error) {
+        const { error: e2 } = await supabase
+          .from('profiles')
+          .upsert({ id: uid, relationship_style: relationshipStyle })
+        if (e2) setPart2Result((prev) => prev ? { ...prev, saveError: e2.message } : prev)
+      }
+    }
+  }
+
+  function handleContinueToPart2() {
+    setPart1Result(null)
+    setCurrentQ(PART1_END)
+    setRankings([0, 0, 0, 0])
   }
 
   const allRanked = rankings.every((r) => r > 0)
   const progress = (currentQ / QUESTIONS.length) * 100
+  const isPart1Last = currentQ === PART1_END - 1
+  const isPart2Last = currentQ === QUESTIONS.length - 1
+  const isInPart2 = currentQ >= PART1_END
 
-  if (result) {
+  if (part1Result) {
     return (
-      <ResultScreen
-        personalityType={result.personalityType}
-        scores={result.scores}
-        saveError={result.saveError}
-        onContinue={handleContinue}
+      <Part1ResultScreen
+        personalityType={part1Result.personalityType}
+        scores={part1Result.scores}
+        saveError={part1Result.saveError}
+        onContinue={handleContinueToPart2}
+        onFinish={() => navigate('/about-me')}
+      />
+    )
+  }
+
+  if (part2Result) {
+    return (
+      <Part2ResultScreen
+        relationshipStyle={part2Result.relationshipStyle}
+        scores={part2Result.scores}
+        saveError={part2Result.saveError}
+        onFinish={() => navigate('/about-me')}
       />
     )
   }
@@ -207,6 +309,7 @@ export default function Test() {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-[#6B6560]">
+                {isInPart2 ? 'Стиль в отношениях · ' : 'Тип личности · '}
                 Вопрос {currentQ + 1} из {QUESTIONS.length}
               </span>
               <span className="text-xs text-[#6B6560]">{Math.round(progress)}%</span>
@@ -293,7 +396,7 @@ export default function Test() {
                 : 'bg-[#E8E4DC] text-[#6B6560] cursor-not-allowed',
             ].join(' ')}
           >
-            {currentQ < QUESTIONS.length - 1 ? 'Далее →' : 'Завершить тест'}
+            {isPart1Last ? 'Завершить часть 1' : isPart2Last ? 'Завершить тест' : 'Далее →'}
           </button>
         </div>
       </div>

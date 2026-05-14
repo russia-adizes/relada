@@ -9,9 +9,11 @@ interface StageContextValue {
   setStage: (stage: Stage) => void
   userName: string
   personalityType: string
+  relationshipStyle: string
   userEmail: string
   refreshProfile: () => Promise<void>
   setPersonalityTypeDirect: (type: string) => void
+  setRelationshipStyleDirect: (type: string) => void
 }
 
 const StageContext = createContext<StageContextValue | null>(null)
@@ -21,6 +23,7 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
   const [stage, setStageState] = useState<Stage>(1)
   const [userName, setUserName] = useState('')
   const [personalityType, setPersonalityType] = useState('')
+  const [relationshipStyle, setRelationshipStyle] = useState('')
 
   async function refreshProfile() {
     if (!user) return
@@ -30,22 +33,34 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
 
     const { data } = await supabase
       .from('profiles')
-      .select('name, personality_type, stage')
+      .select('name, personality_type, relationship_style, stage')
       .eq('id', user.id)
       .maybeSingle()
-    const cached = localStorage.getItem(`relada_pt_${user.id}`)
+
+    const cachedPt = localStorage.getItem(`relada_pt_${user.id}`)
+    const cachedRs = localStorage.getItem(`relada_rs_${user.id}`)
+
     if (data) {
       if (data.name) setUserName(data.name)
+
       if (data.personality_type) {
         setPersonalityType(data.personality_type)
         localStorage.setItem(`relada_pt_${user.id}`, data.personality_type)
-      } else if (cached) {
-        // Profile row exists but personality_type is null — use localStorage
-        setPersonalityType(cached)
+      } else if (cachedPt) {
+        setPersonalityType(cachedPt)
       }
+
+      if (data.relationship_style) {
+        setRelationshipStyle(data.relationship_style)
+        localStorage.setItem(`relada_rs_${user.id}`, data.relationship_style)
+      } else if (cachedRs) {
+        setRelationshipStyle(cachedRs)
+      }
+
       if (data.stage) setStageState(data.stage as Stage)
-    } else if (cached) {
-      setPersonalityType(cached)
+    } else {
+      if (cachedPt) setPersonalityType(cachedPt)
+      if (cachedRs) setRelationshipStyle(cachedRs)
     }
   }
 
@@ -68,9 +83,11 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
     setStage,
     userName: userName || user?.email?.split('@')[0] || '',
     personalityType,
+    relationshipStyle,
     userEmail: user?.email || '',
     refreshProfile,
     setPersonalityTypeDirect: setPersonalityType,
+    setRelationshipStyleDirect: setRelationshipStyle,
   }
 
   return (

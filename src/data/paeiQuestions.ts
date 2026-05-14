@@ -1,5 +1,7 @@
 export type PaeiType = 'P' | 'A' | 'E' | 'I'
 
+export const PART1_END = 20
+
 export interface Answer {
   text: string
   type: PaeiType
@@ -418,12 +420,14 @@ export const QUESTIONS: Question[] = [
 const CAPITAL_THRESHOLD = 12
 const LOWERCASE_THRESHOLD = 7
 
-export function calculatePaeiType(scores: Record<PaeiType, number>): string {
+export function calculatePaeiType(scores: Record<PaeiType, number>, totalQuestions = 40): string {
+  const capitalThreshold = Math.round(CAPITAL_THRESHOLD * totalQuestions / 40)
+  const lowercaseThreshold = Math.round(LOWERCASE_THRESHOLD * totalQuestions / 40)
   return (['P', 'A', 'E', 'I'] as PaeiType[])
     .map((type) => {
       const score = scores[type]
-      if (score >= CAPITAL_THRESHOLD) return type
-      if (score >= LOWERCASE_THRESHOLD) return type.toLowerCase()
+      if (score >= capitalThreshold) return type
+      if (score >= lowercaseThreshold) return type.toLowerCase()
       return '-'
     })
     .join('')
