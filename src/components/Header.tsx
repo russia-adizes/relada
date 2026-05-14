@@ -49,12 +49,6 @@ export default function Header() {
                 <p className="text-xs text-[#6B6560] truncate">{userEmail}</p>
               </div>
               <button
-                onClick={() => { navigate('/profile'); setMenuOpen(false) }}
-                className="w-full text-left px-4 py-2 text-sm text-[#1A1918] hover:bg-[#F5F2EC] transition-colors"
-              >
-                Мой профиль
-              </button>
-              <button
                 onClick={() => { navigate('/settings'); setMenuOpen(false) }}
                 className="w-full text-left px-4 py-2 text-sm text-[#1A1918] hover:bg-[#F5F2EC] transition-colors"
               >
