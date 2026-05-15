@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabaseAdmin } from '../lib/supabase'
 
 const ADMIN_LOGIN = 'admin'
 const ADMIN_PASSWORD = 'relada2026'
@@ -115,7 +115,7 @@ function AdminPanel() {
   useEffect(() => {
     async function load() {
       setLoading(true)
-      const { data: profiles } = await supabase
+      const { data: profiles } = await supabaseAdmin
         .from('profiles')
         .select('id, name, personality_type, relationship_style, created_at')
         .order('created_at', { ascending: false })
@@ -127,7 +127,7 @@ function AdminPanel() {
           hasStyle: profiles.filter((p) => p.relationship_style).length,
         })
       }
-      const { data: couponData } = await supabase.from('coupons').select('*').order('created_at', { ascending: false })
+      const { data: couponData } = await supabaseAdmin.from('coupons').select('*').order('created_at', { ascending: false })
       if (couponData) setCoupons(couponData)
       setLoading(false)
     }
@@ -137,7 +137,7 @@ function AdminPanel() {
   async function createCoupon() {
     if (!newCode || !newDiscount) return
     setSaving(true)
-    const { data, error } = await supabase.from('coupons').insert({
+    const { data, error } = await supabaseAdmin.from('coupons').insert({
       code: newCode.toUpperCase().trim(),
       discount_percent: parseInt(newDiscount),
       max_uses: newMaxUses ? parseInt(newMaxUses) : null,
@@ -150,7 +150,7 @@ function AdminPanel() {
   }
 
   async function deleteCoupon(id: string) {
-    await supabase.from('coupons').delete().eq('id', id)
+    await supabaseAdmin.from('coupons').delete().eq('id', id)
     setCoupons((prev) => prev.filter((c) => c.id !== id))
   }
 
