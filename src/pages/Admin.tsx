@@ -3,7 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseAdmin = createClient(
   'https://oqiiovmytkqsksenyrtr.supabase.co',
-  atob('c2Jfc2VjcmV0X0pWZ1dUM0xFWElRVlg1aERkbVNrb2dfd2FwdldZYUc=')
+  atob('c2Jfc2VjcmV0X0pWZ1dUM0xFWElRVlg1aERkbVNrb2dfd2FwdldZYUc='),
+  { auth: { persistSession: false, autoRefreshToken: false, storageKey: 'relada-admin' } }
 )
 
 const ADMIN_LOGIN = 'admin'
