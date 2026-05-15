@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseAdmin = createClient(
-  'https://oqiiovmytkqsksenyrtr.supabase.co',
-  atob('c2Jfc2VjcmV0X0pWZ1dUM0xFWElRVlg1aERkbVNrb2dfd2FwdldZYUc='),
-  { auth: { persistSession: false, autoRefreshToken: false, storageKey: 'relada-admin' } }
-)
+const SUPA_URL = 'https://oqiiovmytkqsksenyrtr.supabase.co'
+const SUPA_KEY = atob('c2Jfc2VjcmV0X0pWZ1dUM0xFWElRVlg1aERkbVNrb2dfd2FwdldZYUc=')
+
+const supabaseAdmin = createClient(SUPA_URL, SUPA_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false, storageKey: 'relada-admin' },
+})
+
+async function adminFetch(table: string, params = '') {
+  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+  })
+  return res.json()
+}
 
 const ADMIN_LOGIN = 'admin'
 const ADMIN_PASSWORD = 'relada2026'
@@ -121,22 +129,18 @@ function AdminPanel() {
   useEffect(() => {
     async function load() {
       setLoading(true)
-      const { data: profiles, error: profilesError } = await supabaseAdmin
-        .from('profiles')
-        .select('id, name, personality_type, relationship_style, created_at')
-        .order('created_at', { ascending: false })
-      if (profilesError) console.error('profiles error:', profilesError)
-      if (profiles) {
+      const profiles = await adminFetch('profiles', 'select=id,name,personality_type,relationship_style,created_at&order=created_at.desc')
+      console.log('profiles result:', profiles)
+      if (Array.isArray(profiles)) {
         setUsers(profiles)
         setStats({
           total: profiles.length,
-          hasType: profiles.filter((p) => p.personality_type).length,
-          hasStyle: profiles.filter((p) => p.relationship_style).length,
+          hasType: profiles.filter((p: Profile) => p.personality_type).length,
+          hasStyle: profiles.filter((p: Profile) => p.relationship_style).length,
         })
       }
-      const { data: couponData, error: couponsError } = await supabaseAdmin.from('coupons').select('*').order('created_at', { ascending: false })
-      if (couponsError) console.error('coupons error:', couponsError)
-      if (couponData) setCoupons(couponData)
+      const couponData = await adminFetch('coupons', 'select=*&order=created_at.desc')
+      if (Array.isArray(couponData)) setCoupons(couponData)
       setLoading(false)
     }
     load()
