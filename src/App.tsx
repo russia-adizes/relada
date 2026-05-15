@@ -8,11 +8,13 @@ import Auth from './pages/Auth'
 import ResetPassword from './pages/ResetPassword'
 import Settings from './pages/Settings'
 import Test from './pages/Test'
+import Admin from './pages/Admin'
 
 function AppLayout() {
   const { user, loading } = useAuth()
   const location = useLocation()
   const isTestPage = location.pathname === '/test'
+  const isAdminPage = location.pathname === '/admin'
 
   if (loading) {
     return (
@@ -27,6 +29,14 @@ function AppLayout() {
       <Routes>
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="*" element={<Auth />} />
+      </Routes>
+    )
+  }
+
+  if (isAdminPage) {
+    return (
+      <Routes>
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     )
   }

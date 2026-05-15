@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RELADA Admin — Вариант 1</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F5F2EC; display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { width: 220px; background: #1A1918; min-height: 100vh; display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar-logo { padding: 24px 20px; border-bottom: 1px solid #2a2927; }
+    .sidebar-logo span { color: #9E8B45; font-size: 18px; font-weight: 700; letter-spacing: 0.05em; }
+    .sidebar-logo small { display: block; color: #6B6560; font-size: 11px; margin-top: 2px; }
+    .sidebar-nav { padding: 16px 0; flex: 1; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: #9B9691; font-size: 14px; cursor: pointer; transition: all 0.15s; border-left: 3px solid transparent; }
+    .nav-item:hover { color: #fff; background: #252321; }
+    .nav-item.active { color: #fff; background: #252321; border-left-color: #9E8B45; }
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid #2a2927; }
+    .sidebar-footer span { color: #6B6560; font-size: 12px; }
+
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: #fff; border-bottom: 1px solid #E8E4DC; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+    .topbar h1 { font-size: 16px; font-weight: 600; color: #1A1918; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: #9E8B45; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+
+    .content { padding: 24px; }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #E8E4DC; }
+    .stat-label { font-size: 12px; color: #6B6560; margin-bottom: 6px; }
+    .stat-value { font-size: 28px; font-weight: 700; color: #1A1918; }
+    .stat-sub { font-size: 11px; color: #9E8B45; margin-top: 4px; }
+
+    /* Table */
+    .section { background: #fff; border-radius: 12px; border: 1px solid #E8E4DC; margin-bottom: 20px; }
+    .section-header { padding: 16px 20px; border-bottom: 1px solid #E8E4DC; display: flex; align-items: center; justify-content: space-between; }
+    .section-title { font-size: 14px; font-weight: 600; color: #1A1918; }
+    .btn { padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; }
+    .btn-gold { background: #9E8B45; color: #fff; }
+    .btn-outline { background: #fff; color: #1A1918; border: 1px solid #E8E4DC; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th { padding: 10px 20px; text-align: left; font-size: 11px; font-weight: 600; color: #6B6560; text-transform: uppercase; letter-spacing: 0.05em; background: #FAF8F4; }
+    tbody td { padding: 12px 20px; font-size: 13px; color: #1A1918; border-top: 1px solid #F0EDE7; }
+    tbody tr:hover { background: #FAF8F4; }
+
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-green { background: #DCFCE7; color: #16A34A; }
+    .badge-gray { background: #F3F4F6; color: #6B7280; }
+    .badge-gold { background: #FEF3C7; color: #92400E; }
+
+    .type-pill { background: #9E8B45/10; color: #9E8B45; background-color: rgba(158,139,69,0.12); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+
+    /* Coupons */
+    .coupons-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px 20px; }
+    .coupon-card { border: 1px dashed #E8E4DC; border-radius: 10px; padding: 14px; }
+    .coupon-code { font-size: 16px; font-weight: 700; color: #1A1918; letter-spacing: 0.1em; font-family: monospace; }
+    .coupon-meta { font-size: 12px; color: #6B6560; margin-top: 4px; }
+    .coupon-discount { font-size: 20px; font-weight: 800; color: #9E8B45; }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>RELADA</span>
+      <small>Панель администратора</small>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active"><span class="nav-icon">📊</span> Обзор</div>
+      <div class="nav-item"><span class="nav-icon">👥</span> Пользователи</div>
+      <div class="nav-item"><span class="nav-icon">🎟</span> Купоны</div>
+      <div class="nav-item"><span class="nav-icon">💰</span> Тарифы</div>
+      <div class="nav-item"><span class="nav-icon">🏢</span> B2B / Коучи</div>
+      <div class="nav-item"><span class="nav-icon">📦</span> Заказы</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span> Настройки</div>
+    </nav>
+    <div class="sidebar-footer">
+      <span>sofya6800@gmail.com</span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1>Обзор</h1>
+      <div class="topbar-right">
+        <button class="btn btn-gold">+ Создать купон</button>
+        <div class="avatar">S</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Всего пользователей</div>
+          <div class="stat-value">142</div>
+          <div class="stat-sub">+12 за неделю</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Прошли тест</div>
+          <div class="stat-value">89</div>
+          <div class="stat-sub">63% конверсия</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Оплатили</div>
+          <div class="stat-value">24</div>
+          <div class="stat-sub">27% от прошедших</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Выручка</div>
+          <div class="stat-value">38 400 ₽</div>
+          <div class="stat-sub">этот месяц</div>
+        </div>
+      </div>
+
+      <!-- Users table -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Последние пользователи</span>
+          <button class="btn btn-outline">Все пользователи →</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Имя / Email</th>
+              <th>Тип</th>
+              <th>Стиль</th>
+              <th>Доступ</th>
+              <th>Регистрация</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div style="font-weight:600">Анна Смирнова</div>
+                <div style="color:#6B6560;font-size:12px">anna@example.com</div>
+              </td>
+              <td><span class="type-pill">PAei</span></td>
+              <td><span class="type-pill">pAeI</span></td>
+              <td><span class="badge badge-green">Полный</span></td>
+              <td style="color:#6B6560">12 мая 2026</td>
+              <td><button class="btn btn-outline" style="font-size:12px;padding:4px 10px">···</button></td>
+            </tr>
+            <tr>
+              <td>
+                <div style="font-weight:600">Михаил Козлов</div>
+                <div style="color:#6B6560;font-size:12px">misha@example.com</div>
+              </td>
+              <td><span class="type-pill">paEI</span></td>
+              <td style="color:#6B6560">—</td>
+              <td><span class="badge badge-gray">Базовый</span></td>
+              <td style="color:#6B6560">11 мая 2026</td>
+              <td><button class="btn btn-outline" style="font-size:12px;padding:4px 10px">···</button></td>
+            </tr>
+            <tr>
+              <td>
+                <div style="font-weight:600">Ольга Петрова</div>
+                <div style="color:#6B6560;font-size:12px">olga@example.com</div>
+              </td>
+              <td><span class="type-pill">pAEi</span></td>
+              <td><span class="type-pill">PAei</span></td>
+              <td><span class="badge badge-gold">Купон</span></td>
+              <td style="color:#6B6560">10 мая 2026</td>
+              <td><button class="btn btn-outline" style="font-size:12px;padding:4px 10px">···</button></td>
+            </tr>
+            <tr>
+              <td>
+                <div style="font-weight:600">Дмитрий Новиков</div>
+                <div style="color:#6B6560;font-size:12px">dima@example.com</div>
+              </td>
+              <td style="color:#6B6560">не прошёл</td>
+              <td style="color:#6B6560">—</td>
+              <td><span class="badge badge-gray">Нет</span></td>
+              <td style="color:#6B6560">9 мая 2026</td>
+              <td><button class="btn btn-outline" style="font-size:12px;padding:4px 10px">···</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Coupons -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Активные купоны</span>
+          <button class="btn btn-gold">+ Новый купон</button>
+        </div>
+        <div class="coupons-grid">
+          <div class="coupon-card">
+            <div class="coupon-discount">50%</div>
+            <div class="coupon-code">RELADA50</div>
+            <div class="coupon-meta">Использований: 7 / 20 · до 31 мая</div>
+          </div>
+          <div class="coupon-card">
+            <div class="coupon-discount">100%</div>
+            <div class="coupon-code">GIFT2026</div>
+            <div class="coupon-meta">Использований: 2 / 5 · бессрочно</div>
+          </div>
+          <div class="coupon-card" style="border-style:solid;border-color:#9E8B45;background:rgba(158,139,69,0.04)">
+            <div style="color:#9E8B45;font-size:12px;margin-bottom:8px">+ создать новый</div>
+            <button class="btn btn-outline" style="width:100%;font-size:13px">Добавить купон</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

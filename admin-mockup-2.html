@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RELADA Admin — Вариант 2</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #FAF8F4; min-height: 100vh; }
+
+    /* Top nav */
+    .topnav { background: #fff; border-bottom: 1px solid #E8E4DC; padding: 0 32px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+    .logo { font-size: 18px; font-weight: 700; color: #9E8B45; letter-spacing: 0.05em; }
+    .logo small { color: #6B6560; font-size: 12px; font-weight: 400; margin-left: 8px; }
+    .nav-tabs { display: flex; gap: 4px; }
+    .nav-tab { padding: 6px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6B6560; cursor: pointer; transition: all 0.15s; }
+    .nav-tab:hover { color: #1A1918; background: #F5F2EC; }
+    .nav-tab.active { background: #9E8B45; color: #fff; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #1A1918; color: #9E8B45; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+
+    .page { max-width: 1100px; margin: 0 auto; padding: 28px 32px; }
+
+    /* Stat row */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+    .stat { background: #fff; border: 1px solid #E8E4DC; border-radius: 14px; padding: 18px 20px; }
+    .stat-icon { font-size: 20px; margin-bottom: 10px; }
+    .stat-num { font-size: 30px; font-weight: 800; color: #1A1918; line-height: 1; }
+    .stat-label { font-size: 12px; color: #6B6560; margin-top: 4px; }
+    .stat-trend { font-size: 11px; color: #16A34A; margin-top: 6px; }
+
+    /* Two columns */
+    .cols { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+    .card { background: #fff; border: 1px solid #E8E4DC; border-radius: 14px; }
+    .card-head { padding: 16px 20px; border-bottom: 1px solid #F0EDE7; display: flex; align-items: center; justify-content: space-between; }
+    .card-title { font-size: 14px; font-weight: 600; color: #1A1918; }
+    .card-body { padding: 16px 20px; }
+
+    .btn { padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; }
+    .btn-gold { background: #9E8B45; color: #fff; }
+    .btn-ghost { background: transparent; color: #9E8B45; font-size: 13px; cursor: pointer; border: none; font-weight: 500; }
+
+    /* User list */
+    .user-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F5F2EC; }
+    .user-row:last-child { border-bottom: none; }
+    .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #F5F2EC; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #9E8B45; flex-shrink: 0; }
+    .user-info { flex: 1; }
+    .user-name { font-size: 13px; font-weight: 600; color: #1A1918; }
+    .user-email { font-size: 11px; color: #6B6560; }
+    .user-type { font-size: 12px; font-weight: 700; color: #9E8B45; background: rgba(158,139,69,0.1); padding: 2px 7px; border-radius: 6px; }
+    .user-date { font-size: 11px; color: #9B9691; }
+
+    .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-green { background: #DCFCE7; color: #16A34A; }
+    .badge-gray { background: #F3F4F6; color: #6B7280; }
+
+    /* Coupons */
+    .coupon { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F5F2EC; }
+    .coupon:last-child { border-bottom: none; }
+    .coupon-left { display: flex; flex-direction: column; gap: 3px; }
+    .coupon-code { font-family: monospace; font-size: 15px; font-weight: 700; color: #1A1918; letter-spacing: 0.08em; }
+    .coupon-info { font-size: 11px; color: #6B6560; }
+    .coupon-pct { font-size: 20px; font-weight: 800; color: #9E8B45; }
+
+    /* Pricing */
+    .pricing-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #F5F2EC; }
+    .pricing-row:last-child { border-bottom: none; }
+    .pricing-name { font-size: 13px; font-weight: 600; color: #1A1918; }
+    .pricing-desc { font-size: 11px; color: #6B6560; }
+    .pricing-price { font-size: 18px; font-weight: 800; color: #1A1918; }
+    .price-edit { background: #F5F2EC; border: none; border-radius: 8px; padding: 5px 10px; font-size: 13px; color: #1A1918; cursor: pointer; }
+
+    /* Chart mock */
+    .chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 80px; margin-top: 8px; }
+    .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bar { width: 100%; background: rgba(158,139,69,0.15); border-radius: 4px 4px 0 0; transition: all 0.3s; }
+    .bar:hover { background: #9E8B45; }
+    .bar-label { font-size: 10px; color: #9B9691; }
+  </style>
+</head>
+<body>
+
+  <nav class="topnav">
+    <div style="display:flex;align-items:center;gap:24px">
+      <div class="logo">RELADA <small>admin</small></div>
+      <div class="nav-tabs">
+        <div class="nav-tab active">Обзор</div>
+        <div class="nav-tab">Пользователи</div>
+        <div class="nav-tab">Купоны</div>
+        <div class="nav-tab">Тарифы</div>
+        <div class="nav-tab">B2B</div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <button class="btn btn-gold">+ Купон</button>
+      <div class="avatar">S</div>
+    </div>
+  </nav>
+
+  <div class="page">
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-icon">👥</div>
+        <div class="stat-num">142</div>
+        <div class="stat-label">Пользователей всего</div>
+        <div class="stat-trend">↑ +12 за неделю</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon">✅</div>
+        <div class="stat-num">89</div>
+        <div class="stat-label">Прошли тест</div>
+        <div class="stat-trend">63% конверсия</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon">💳</div>
+        <div class="stat-num">24</div>
+        <div class="stat-label">Оплатили</div>
+        <div class="stat-trend">↑ +3 за неделю</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon">💰</div>
+        <div class="stat-num">38 400 ₽</div>
+        <div class="stat-label">Выручка за май</div>
+        <div class="stat-trend">↑ +8 200 ₽ к апрелю</div>
+      </div>
+    </div>
+
+    <!-- Chart + Coupons -->
+    <div class="cols">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Регистрации по дням</span>
+          <span style="font-size:12px;color:#6B6560">май 2026</span>
+        </div>
+        <div class="card-body">
+          <div class="chart-bars">
+            <div class="bar-wrap"><div class="bar" style="height:30%"></div><div class="bar-label">8</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:50%"></div><div class="bar-label">9</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:40%"></div><div class="bar-label">10</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:70%"></div><div class="bar-label">11</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:90%"></div><div class="bar-label">12</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:60%"></div><div class="bar-label">13</div></div>
+            <div class="bar-wrap"><div class="bar" style="height:45%"></div><div class="bar-label">14</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Купоны</span>
+          <button class="btn-ghost">+ Новый</button>
+        </div>
+        <div class="card-body">
+          <div class="coupon">
+            <div class="coupon-left">
+              <div class="coupon-code">RELADA50</div>
+              <div class="coupon-info">7 / 20 использований · до 31 мая</div>
+            </div>
+            <div class="coupon-pct">50%</div>
+          </div>
+          <div class="coupon">
+            <div class="coupon-left">
+              <div class="coupon-code">GIFT2026</div>
+              <div class="coupon-info">2 / 5 использований · бессрочно</div>
+            </div>
+            <div class="coupon-pct">100%</div>
+          </div>
+          <div class="coupon">
+            <div class="coupon-left">
+              <div class="coupon-code">COACH10</div>
+              <div class="coupon-info">0 / ∞ использований · для коучей</div>
+            </div>
+            <div class="coupon-pct">30%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users + Pricing -->
+    <div class="cols">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Последние пользователи</span>
+          <button class="btn-ghost">Все →</button>
+        </div>
+        <div class="card-body">
+          <div class="user-row">
+            <div class="user-avatar">А</div>
+            <div class="user-info">
+              <div class="user-name">Анна Смирнова</div>
+              <div class="user-email">anna@example.com</div>
+            </div>
+            <span class="user-type">PAei</span>
+            <span class="badge badge-green">Оплатила</span>
+            <span class="user-date">12 мая</span>
+          </div>
+          <div class="user-row">
+            <div class="user-avatar">М</div>
+            <div class="user-info">
+              <div class="user-name">Михаил Козлов</div>
+              <div class="user-email">misha@example.com</div>
+            </div>
+            <span class="user-type">paEI</span>
+            <span class="badge badge-gray">Базовый</span>
+            <span class="user-date">11 мая</span>
+          </div>
+          <div class="user-row">
+            <div class="user-avatar">О</div>
+            <div class="user-info">
+              <div class="user-name">Ольга Петрова</div>
+              <div class="user-email">olga@example.com</div>
+            </div>
+            <span class="user-type">pAEi</span>
+            <span class="badge badge-green">Купон</span>
+            <span class="user-date">10 мая</span>
+          </div>
+          <div class="user-row">
+            <div class="user-avatar">Д</div>
+            <div class="user-info">
+              <div class="user-name">Дмитрий Новиков</div>
+              <div class="user-email">dima@example.com</div>
+            </div>
+            <span style="color:#6B6560;font-size:12px">тест не пройден</span>
+            <span class="badge badge-gray">—</span>
+            <span class="user-date">9 мая</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Тарифы</span>
+          <button class="btn-ghost">Изменить</button>
+        </div>
+        <div class="card-body">
+          <div class="pricing-row">
+            <div>
+              <div class="pricing-name">Базовый тест</div>
+              <div class="pricing-desc">20 вопросов · тип личности</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="pricing-price">990 ₽</div>
+              <button class="price-edit">✏️</button>
+            </div>
+          </div>
+          <div class="pricing-row">
+            <div>
+              <div class="pricing-name">Расширенный</div>
+              <div class="pricing-desc">40 вопросов · тип + стиль</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="pricing-price">1 690 ₽</div>
+              <button class="price-edit">✏️</button>
+            </div>
+          </div>
+          <div class="pricing-row">
+            <div>
+              <div class="pricing-name">С консультацией</div>
+              <div class="pricing-desc">тест + разбор с экспертом</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="pricing-price">4 900 ₽</div>
+              <button class="price-edit">✏️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
