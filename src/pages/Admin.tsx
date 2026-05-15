@@ -120,10 +120,11 @@ function AdminPanel() {
   useEffect(() => {
     async function load() {
       setLoading(true)
-      const { data: profiles } = await supabaseAdmin
+      const { data: profiles, error: profilesError } = await supabaseAdmin
         .from('profiles')
         .select('id, name, personality_type, relationship_style, created_at')
         .order('created_at', { ascending: false })
+      if (profilesError) console.error('profiles error:', profilesError)
       if (profiles) {
         setUsers(profiles)
         setStats({
@@ -132,7 +133,8 @@ function AdminPanel() {
           hasStyle: profiles.filter((p) => p.relationship_style).length,
         })
       }
-      const { data: couponData } = await supabaseAdmin.from('coupons').select('*').order('created_at', { ascending: false })
+      const { data: couponData, error: couponsError } = await supabaseAdmin.from('coupons').select('*').order('created_at', { ascending: false })
+      if (couponsError) console.error('coupons error:', couponsError)
       if (couponData) setCoupons(couponData)
       setLoading(false)
     }
