@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { supabaseAdmin } from '../lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseAdmin = createClient(
+  'https://oqiiovmytkqsksenyrtr.supabase.co',
+  atob('c2Jfc2VjcmV0X0pWZ1dUM0xFWElRVlg1aERkbVNrb2dfd2FwdldZYUc=')
+)
 
 const ADMIN_LOGIN = 'admin'
 const ADMIN_PASSWORD = 'relada2026'
