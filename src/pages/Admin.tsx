@@ -9,9 +9,11 @@ const supabaseAdmin = createClient(SUPA_URL, SUPA_KEY, {
 })
 
 async function adminFetch(table: string, params = '') {
+  console.log('fetching with key length:', SUPA_KEY.length, 'starts:', SUPA_KEY.slice(0, 10))
   const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
     headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
   })
+  console.log('response status:', res.status)
   return res.json()
 }
 
