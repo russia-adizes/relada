@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
-const ADMIN_EMAIL = 'sofya6800@gmail.com'
+const ADMIN_EMAILS = ['sofya6800@gmail.com', 'admin@relada.internal']
+const LOGIN_MAP: Record<string, string> = {
+  admin: 'admin@relada.internal',
+  sofya: 'sofya6800@gmail.com',
+}
 
 type Section = 'overview' | 'users' | 'coupons' | 'pricing'
 
 interface Profile {
   id: string
   name: string | null
-  email?: string
   personality_type: string | null
   relationship_style: string | null
   created_at: string
@@ -26,11 +28,7 @@ interface Coupon {
   created_at: string
 }
 
-interface Stats {
-  total: number
-  hasType: number
-  hasStyle: number
-}
+interface Stats { total: number; hasType: number; hasStyle: number }
 
 const NAV = [
   { id: 'overview' as Section, icon: '📊', label: 'Обзор' },
@@ -39,33 +37,92 @@ const NAV = [
   { id: 'pricing' as Section, icon: '💰', label: 'Тарифы' },
 ]
 
+// ── Login screen ──────────────────────────────────────────────────────────────
+function AdminLogin() {
+  const [login, setLogin] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    const email = LOGIN_MAP[login.toLowerCase()] ?? login
+    setLoading(true)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    setLoading(false)
+    if (error) setError('Неверный логин или пароль')
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#1A1918', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+      <div style={{ background: '#252321', borderRadius: 16, padding: 40, width: 360, border: '1px solid #2a2927' }}>
+        <div style={{ color: '#9E8B45', fontSize: 22, fontWeight: 700, letterSpacing: '0.05em', marginBottom: 4 }}>RELADA</div>
+        <div style={{ color: '#6B6560', fontSize: 13, marginBottom: 32 }}>Панель администратора</div>
+
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, color: '#9B9691', marginBottom: 6 }}>Логин</label>
+            <input
+              value={login} onChange={(e) => setLogin(e.target.value)}
+              placeholder="admin"
+              autoComplete="username"
+              style={{ width: '100%', background: '#1A1918', border: '1px solid #3a3937', borderRadius: 8, padding: '10px 12px', fontSize: 14, color: '#fff', outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, color: '#9B9691', marginBottom: 6 }}>Пароль</label>
+            <input
+              type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              style={{ width: '100%', background: '#1A1918', border: '1px solid #3a3937', borderRadius: 8, padding: '10px 12px', fontSize: 14, color: '#fff', outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
+
+          {error && <div style={{ fontSize: 13, color: '#EF4444' }}>{error}</div>}
+
+          <button
+            type="submit" disabled={loading || !login || !password}
+            style={{ background: '#9E8B45', color: '#fff', border: 'none', borderRadius: 8, padding: '11px', fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 4, opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? 'Входим...' : 'Войти'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ── Main admin panel ──────────────────────────────────────────────────────────
 export default function Admin() {
   const { user } = useAuth()
+
+  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) {
+    return <AdminLogin />
+  }
+
+  return <AdminPanel user={user} />
+}
+
+function AdminPanel({ user }: { user: { email?: string } }) {
   const [section, setSection] = useState<Section>('overview')
   const [users, setUsers] = useState<Profile[]>([])
   const [stats, setStats] = useState<Stats>({ total: 0, hasType: 0, hasStyle: 0 })
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loading, setLoading] = useState(true)
-
-  // Coupon form state
   const [newCode, setNewCode] = useState('')
   const [newDiscount, setNewDiscount] = useState('')
   const [newMaxUses, setNewMaxUses] = useState('')
   const [saving, setSaving] = useState(false)
 
-  if (!user || user.email !== ADMIN_EMAIL) {
-    return <Navigate to="/" />
-  }
-
   useEffect(() => {
     async function load() {
       setLoading(true)
-
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, name, personality_type, relationship_style, created_at')
         .order('created_at', { ascending: false })
-
       if (profiles) {
         setUsers(profiles)
         setStats({
@@ -74,14 +131,8 @@ export default function Admin() {
           hasStyle: profiles.filter((p) => p.relationship_style).length,
         })
       }
-
-      const { data: couponData } = await supabase
-        .from('coupons')
-        .select('*')
-        .order('created_at', { ascending: false })
-
+      const { data: couponData } = await supabase.from('coupons').select('*').order('created_at', { ascending: false })
       if (couponData) setCoupons(couponData)
-
       setLoading(false)
     }
     load()
@@ -98,9 +149,7 @@ export default function Admin() {
     setSaving(false)
     if (!error && data) {
       setCoupons((prev) => [data, ...prev])
-      setNewCode('')
-      setNewDiscount('')
-      setNewMaxUses('')
+      setNewCode(''); setNewDiscount(''); setNewMaxUses('')
     }
   }
 
@@ -111,6 +160,10 @@ export default function Admin() {
 
   function formatDate(str: string) {
     return new Date(str).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
   }
 
   return (
@@ -124,45 +177,36 @@ export default function Admin() {
         </div>
         <nav style={{ padding: '16px 0', flex: 1 }}>
           {NAV.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setSection(item.id)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 20px', width: '100%', border: 'none',
-                background: section === item.id ? '#252321' : 'transparent',
-                borderLeft: `3px solid ${section === item.id ? '#9E8B45' : 'transparent'}`,
-                color: section === item.id ? '#fff' : '#9B9691',
-                fontSize: 14, cursor: 'pointer', textAlign: 'left',
-              }}
-            >
+            <button key={item.id} onClick={() => setSection(item.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 20px', width: '100%', border: 'none',
+              background: section === item.id ? '#252321' : 'transparent',
+              borderLeft: `3px solid ${section === item.id ? '#9E8B45' : 'transparent'}`,
+              color: section === item.id ? '#fff' : '#9B9691',
+              fontSize: 14, cursor: 'pointer', textAlign: 'left',
+            }}>
               <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>{item.icon}</span>
               {item.label}
             </button>
           ))}
         </nav>
-        <div style={{ padding: '16px 20px', borderTop: '1px solid #2a2927' }}>
+        <div style={{ padding: '16px 20px', borderTop: '1px solid #2a2927', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ color: '#6B6560', fontSize: 11 }}>{user.email}</div>
+          <button onClick={handleSignOut} style={{ background: 'none', border: 'none', color: '#6B6560', fontSize: 12, cursor: 'pointer', textAlign: 'left', padding: 0 }}>Выйти</button>
         </div>
       </aside>
 
       {/* Main */}
       <div style={{ flex: 1, background: '#F5F2EC', display: 'flex', flexDirection: 'column' }}>
-
-        {/* Topbar */}
         <div style={{ background: '#fff', borderBottom: '1px solid #E8E4DC', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#1A1918' }}>
-            {NAV.find((n) => n.id === section)?.label}
-          </div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#1A1918' }}>{NAV.find((n) => n.id === section)?.label}</div>
           <a href="/" style={{ fontSize: 13, color: '#6B6560', textDecoration: 'none' }}>← На сайт</a>
         </div>
 
         <div style={{ padding: 24, flex: 1 }}>
 
-          {/* OVERVIEW */}
           {section === 'overview' && (
             <div>
-              {/* Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
                 {[
                   { label: 'Всего пользователей', value: stats.total, sub: 'зарегистрированы' },
@@ -177,7 +221,6 @@ export default function Admin() {
                 ))}
               </div>
 
-              {/* Recent users */}
               <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E8E4DC', marginBottom: 20 }}>
                 <div style={{ padding: '14px 20px', borderBottom: '1px solid #E8E4DC', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Последние пользователи</span>
@@ -186,26 +229,21 @@ export default function Admin() {
                 <UserTable users={users.slice(0, 5)} formatDate={formatDate} />
               </div>
 
-              {/* Coupons summary */}
               <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E8E4DC' }}>
                 <div style={{ padding: '14px 20px', borderBottom: '1px solid #E8E4DC', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Активные купоны</span>
                   <button onClick={() => setSection('coupons')} style={{ fontSize: 12, color: '#9E8B45', background: 'none', border: 'none', cursor: 'pointer' }}>Управлять →</button>
                 </div>
                 <div style={{ padding: '12px 20px' }}>
-                  {coupons.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#6B6560' }}>Купонов пока нет</p>
-                  ) : (
-                    coupons.slice(0, 3).map((c) => (
-                      <CouponRow key={c.id} coupon={c} onDelete={deleteCoupon} compact />
-                    ))
-                  )}
+                  {coupons.length === 0
+                    ? <p style={{ fontSize: 13, color: '#6B6560' }}>Купонов пока нет</p>
+                    : coupons.slice(0, 3).map((c) => <CouponRow key={c.id} coupon={c} onDelete={deleteCoupon} compact />)
+                  }
                 </div>
               </div>
             </div>
           )}
 
-          {/* USERS */}
           {section === 'users' && (
             <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E8E4DC' }}>
               <div style={{ padding: '14px 20px', borderBottom: '1px solid #E8E4DC' }}>
@@ -215,65 +253,41 @@ export default function Admin() {
             </div>
           )}
 
-          {/* COUPONS */}
           {section === 'coupons' && (
             <div>
-              {/* Create form */}
               <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E8E4DC', padding: 20, marginBottom: 20 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Создать купон</div>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <input
-                    value={newCode} onChange={(e) => setNewCode(e.target.value)}
-                    placeholder="Код (напр. RELADA50)"
-                    style={inputStyle}
-                  />
-                  <input
-                    value={newDiscount} onChange={(e) => setNewDiscount(e.target.value)}
-                    placeholder="Скидка %"
-                    type="number" min="1" max="100"
-                    style={{ ...inputStyle, width: 120 }}
-                  />
-                  <input
-                    value={newMaxUses} onChange={(e) => setNewMaxUses(e.target.value)}
-                    placeholder="Макс. использований (пусто = ∞)"
-                    type="number" min="1"
-                    style={{ ...inputStyle, width: 240 }}
-                  />
-                  <button
-                    onClick={createCoupon} disabled={saving || !newCode || !newDiscount}
-                    style={{ background: '#9E8B45', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}
-                  >
+                  <input value={newCode} onChange={(e) => setNewCode(e.target.value)} placeholder="Код (напр. RELADA50)" style={inputStyle} />
+                  <input value={newDiscount} onChange={(e) => setNewDiscount(e.target.value)} placeholder="Скидка %" type="number" min="1" max="100" style={{ ...inputStyle, width: 120 }} />
+                  <input value={newMaxUses} onChange={(e) => setNewMaxUses(e.target.value)} placeholder="Макс. использований (пусто = ∞)" type="number" min="1" style={{ ...inputStyle, width: 240 }} />
+                  <button onClick={createCoupon} disabled={saving || !newCode || !newDiscount}
+                    style={{ background: '#9E8B45', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
                     {saving ? 'Создаём...' : 'Создать'}
                   </button>
                 </div>
               </div>
-
-              {/* List */}
               <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E8E4DC' }}>
                 <div style={{ padding: '14px 20px', borderBottom: '1px solid #E8E4DC' }}>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Все купоны ({coupons.length})</span>
                 </div>
                 <div style={{ padding: '0 20px' }}>
-                  {coupons.length === 0 ? (
-                    <p style={{ padding: '20px 0', fontSize: 13, color: '#6B6560' }}>Купонов пока нет</p>
-                  ) : (
-                    coupons.map((c) => <CouponRow key={c.id} coupon={c} onDelete={deleteCoupon} formatDate={formatDate} />)
-                  )}
+                  {coupons.length === 0
+                    ? <p style={{ padding: '20px 0', fontSize: 13, color: '#6B6560' }}>Купонов пока нет</p>
+                    : coupons.map((c) => <CouponRow key={c.id} coupon={c} onDelete={deleteCoupon} formatDate={formatDate} />)
+                  }
                 </div>
               </div>
             </div>
           )}
 
-          {/* PRICING */}
           {section === 'pricing' && (
             <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E8E4DC' }}>
               <div style={{ padding: '14px 20px', borderBottom: '1px solid #E8E4DC' }}>
                 <span style={{ fontSize: 14, fontWeight: 600 }}>Тарифы</span>
               </div>
               <div style={{ padding: 20 }}>
-                <p style={{ fontSize: 13, color: '#6B6560', marginBottom: 20 }}>
-                  Управление ценами будет доступно после подключения платёжного провайдера.
-                </p>
+                <p style={{ fontSize: 13, color: '#6B6560', marginBottom: 20 }}>Управление ценами будет доступно после подключения платёжного провайдера.</p>
                 {[
                   { name: 'Базовый тест', desc: '20 вопросов · тип личности', price: '990 ₽' },
                   { name: 'Расширенный', desc: '40 вопросов · тип + стиль в отношениях', price: '1 690 ₽' },
@@ -332,12 +346,7 @@ function UserTable({ users, formatDate }: { users: Profile[], formatDate: (s: st
   )
 }
 
-function CouponRow({ coupon, onDelete, compact, formatDate }: {
-  coupon: Coupon
-  onDelete: (id: string) => void
-  compact?: boolean
-  formatDate?: (s: string) => string
-}) {
+function CouponRow({ coupon, onDelete, compact, formatDate }: { coupon: Coupon; onDelete: (id: string) => void; compact?: boolean; formatDate?: (s: string) => string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #F5F2EC' }}>
       <div>
@@ -350,10 +359,7 @@ function CouponRow({ coupon, onDelete, compact, formatDate }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ fontSize: 20, fontWeight: 800, color: '#9E8B45' }}>{coupon.discount_percent}%</span>
         {!compact && (
-          <button
-            onClick={() => onDelete(coupon.id)}
-            style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: 13, cursor: 'pointer', padding: '4px 8px' }}
-          >
+          <button onClick={() => onDelete(coupon.id)} style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: 13, cursor: 'pointer', padding: '4px 8px' }}>
             удалить
           </button>
         )}
