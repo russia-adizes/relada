@@ -1,21 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-
-const SUPA_URL = 'https://oqiiovmytkqsksenyrtr.supabase.co'
-const SUPA_KEY = atob('c2Jfc2VjcmV0X0pWZ1dUM0xFWElRVlg1aERkbVNrb2dfd2FwdldZYUc=')
-
-const supabaseAdmin = createClient(SUPA_URL, SUPA_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false, storageKey: 'relada-admin' },
-})
-
-async function adminFetch(table: string, params = '') {
-  console.log('fetching with key length:', SUPA_KEY.length, 'starts:', SUPA_KEY.slice(0, 10))
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
-    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
-  })
-  console.log('response status:', res.status)
-  return res.json()
-}
+import { supabase } from '../lib/supabase'
 
 const ADMIN_LOGIN = 'admin'
 const ADMIN_PASSWORD = 'relada2026'
@@ -131,8 +115,7 @@ function AdminPanel() {
   useEffect(() => {
     async function load() {
       setLoading(true)
-      const profiles = await adminFetch('profiles', 'select=id,name,personality_type,relationship_style,created_at&order=created_at.desc')
-      console.log('profiles result:', profiles)
+      const { data: profiles } = await supabase.rpc('admin_get_profiles')
       if (Array.isArray(profiles)) {
         setUsers(profiles)
         setStats({
@@ -141,7 +124,7 @@ function AdminPanel() {
           hasStyle: profiles.filter((p: Profile) => p.relationship_style).length,
         })
       }
-      const couponData = await adminFetch('coupons', 'select=*&order=created_at.desc')
+      const { data: couponData } = await supabase.rpc('admin_get_coupons')
       if (Array.isArray(couponData)) setCoupons(couponData)
       setLoading(false)
     }
@@ -151,11 +134,11 @@ function AdminPanel() {
   async function createCoupon() {
     if (!newCode || !newDiscount) return
     setSaving(true)
-    const { data, error } = await supabaseAdmin.from('coupons').insert({
-      code: newCode.toUpperCase().trim(),
-      discount_percent: parseInt(newDiscount),
-      max_uses: newMaxUses ? parseInt(newMaxUses) : null,
-    }).select().single()
+    const { data, error } = await supabase.rpc('admin_create_coupon', {
+      p_code: newCode.toUpperCase().trim(),
+      p_discount: parseInt(newDiscount),
+      p_max_uses: newMaxUses ? parseInt(newMaxUses) : null,
+    })
     setSaving(false)
     if (!error && data) {
       setCoupons((prev) => [data, ...prev])
@@ -164,7 +147,7 @@ function AdminPanel() {
   }
 
   async function deleteCoupon(id: string) {
-    await supabaseAdmin.from('coupons').delete().eq('id', id)
+    await supabase.rpc('admin_delete_coupon', { p_id: id })
     setCoupons((prev) => prev.filter((c) => c.id !== id))
   }
 
