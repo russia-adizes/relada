@@ -5,10 +5,9 @@ import { supabase } from '../lib/supabase'
 type Mode = 'login' | 'register' | 'forgot'
 type Role = 'user' | 'admin'
 
-const LOGIN_MAP: Record<string, string> = {
-  admin: 'admin@relada.internal',
-  sofya: 'sofya6800@gmail.com',
-}
+const ADMIN_LOGIN = 'admin'
+const ADMIN_PASSWORD = 'relada2026'
+const ADMIN_SESSION_KEY = 'relada_admin'
 
 export default function Auth() {
   const navigate = useNavigate()
@@ -41,15 +40,12 @@ export default function Auth() {
     reset()
 
     if (role === 'admin') {
-      const adminEmail = LOGIN_MAP[login.trim().toLowerCase()]
-      if (!adminEmail) {
+      if (login.trim().toLowerCase() === ADMIN_LOGIN && password === ADMIN_PASSWORD) {
+        sessionStorage.setItem(ADMIN_SESSION_KEY, 'true')
+        navigate('/admin')
+      } else {
         setError('Неверный логин или пароль')
-        setLoading(false)
-        return
       }
-      const { error } = await supabase.auth.signInWithPassword({ email: adminEmail, password })
-      if (error) setError('Неверный логин или пароль')
-      else navigate('/admin')
       setLoading(false)
       return
     }

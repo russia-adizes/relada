@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
-const ADMIN_EMAILS = ['sofya6800@gmail.com', 'admin@relada.internal']
-const LOGIN_MAP: Record<string, string> = {
-  admin: 'admin@relada.internal',
-  sofya: 'sofya6800@gmail.com',
-}
+const ADMIN_LOGIN = 'admin'
+const ADMIN_PASSWORD = 'relada2026'
+const ADMIN_SESSION_KEY = 'relada_admin'
 
 type Section = 'overview' | 'users' | 'coupons' | 'pricing'
 
@@ -38,20 +35,19 @@ const NAV = [
 ]
 
 // ── Login screen ──────────────────────────────────────────────────────────────
-function AdminLogin() {
+function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
 
-  async function handleLogin(e: React.FormEvent) {
+  function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-    const email = LOGIN_MAP[login.toLowerCase()] ?? login
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
-    if (error) setError('Неверный логин или пароль')
+    if (login.trim().toLowerCase() === ADMIN_LOGIN && password === ADMIN_PASSWORD) {
+      sessionStorage.setItem(ADMIN_SESSION_KEY, 'true')
+      onSuccess()
+    } else {
+      setError('Неверный логин или пароль')
+    }
   }
 
   return (
@@ -83,10 +79,10 @@ function AdminLogin() {
           {error && <div style={{ fontSize: 13, color: '#EF4444' }}>{error}</div>}
 
           <button
-            type="submit" disabled={loading || !login || !password}
-            style={{ background: '#9E8B45', color: '#fff', border: 'none', borderRadius: 8, padding: '11px', fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 4, opacity: loading ? 0.7 : 1 }}
+            type="submit" disabled={!login || !password}
+            style={{ background: '#9E8B45', color: '#fff', border: 'none', borderRadius: 8, padding: '11px', fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 4 }}
           >
-            {loading ? 'Входим...' : 'Войти'}
+            Войти
           </button>
         </form>
       </div>
@@ -96,16 +92,16 @@ function AdminLogin() {
 
 // ── Main admin panel ──────────────────────────────────────────────────────────
 export default function Admin() {
-  const { user } = useAuth()
+  const [authed, setAuthed] = useState(() => sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true')
 
-  if (!user || !ADMIN_EMAILS.includes(user.email ?? '')) {
-    return <AdminLogin />
+  if (!authed) {
+    return <AdminLogin onSuccess={() => setAuthed(true)} />
   }
 
-  return <AdminPanel user={user} />
+  return <AdminPanel />
 }
 
-function AdminPanel({ user }: { user: { email?: string } }) {
+function AdminPanel() {
   const [section, setSection] = useState<Section>('overview')
   const [users, setUsers] = useState<Profile[]>([])
   const [stats, setStats] = useState<Stats>({ total: 0, hasType: 0, hasStyle: 0 })
@@ -162,8 +158,9 @@ function AdminPanel({ user }: { user: { email?: string } }) {
     return new Date(str).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
-  async function handleSignOut() {
-    await supabase.auth.signOut()
+  function handleSignOut() {
+    sessionStorage.removeItem(ADMIN_SESSION_KEY)
+    window.location.href = '/'
   }
 
   return (
@@ -191,7 +188,7 @@ function AdminPanel({ user }: { user: { email?: string } }) {
           ))}
         </nav>
         <div style={{ padding: '16px 20px', borderTop: '1px solid #2a2927', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ color: '#6B6560', fontSize: 11 }}>{user.email}</div>
+          <div style={{ color: '#6B6560', fontSize: 11 }}>admin</div>
           <button onClick={handleSignOut} style={{ background: 'none', border: 'none', color: '#6B6560', fontSize: 12, cursor: 'pointer', textAlign: 'left', padding: 0 }}>Выйти</button>
         </div>
       </aside>

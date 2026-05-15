@@ -16,6 +16,14 @@ function AppLayout() {
   const isTestPage = location.pathname === '/test'
   const isAdminPage = location.pathname === '/admin'
 
+  if (isAdminPage) {
+    return (
+      <Routes>
+        <Route path="/admin" element={<Admin />} />
+      </Routes>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#FAF8F4] flex items-center justify-center">
@@ -29,14 +37,6 @@ function AppLayout() {
       <Routes>
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="*" element={<Auth />} />
-      </Routes>
-    )
-  }
-
-  if (isAdminPage) {
-    return (
-      <Routes>
-        <Route path="/admin" element={<Admin />} />
       </Routes>
     )
   }
