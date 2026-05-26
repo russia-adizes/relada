@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from './AuthContext'
 
 type Stage = 1 | 2 | 3 | 4
+export type AccessLevel = 'none' | 'basic' | 'full'
 
 interface StageContextValue {
   stage: Stage
@@ -11,6 +12,8 @@ interface StageContextValue {
   personalityType: string
   relationshipStyle: string
   userEmail: string
+  accessLevel: AccessLevel
+  setAccessLevel: (level: AccessLevel) => Promise<void>
   refreshProfile: () => Promise<void>
   setPersonalityTypeDirect: (type: string) => void
   setRelationshipStyleDirect: (type: string) => void
@@ -24,6 +27,7 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
   const [userName, setUserName] = useState('')
   const [personalityType, setPersonalityType] = useState('')
   const [relationshipStyle, setRelationshipStyle] = useState('')
+  const [accessLevel, setAccessLevelState] = useState<AccessLevel>('none')
 
   async function refreshProfile() {
     if (!user) return
@@ -33,7 +37,7 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
 
     const { data } = await supabase
       .from('profiles')
-      .select('name, personality_type, relationship_style, stage')
+      .select('name, personality_type, relationship_style, stage, access_level')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -58,6 +62,7 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.stage) setStageState(data.stage as Stage)
+      if (data.access_level) setAccessLevelState(data.access_level as AccessLevel)
     } else {
       if (cachedPt) setPersonalityType(cachedPt)
       if (cachedRs) setRelationshipStyle(cachedRs)
@@ -71,10 +76,14 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
   async function setStage(newStage: Stage) {
     setStageState(newStage)
     if (user) {
-      await supabase
-        .from('profiles')
-        .update({ stage: newStage })
-        .eq('id', user.id)
+      await supabase.from('profiles').update({ stage: newStage }).eq('id', user.id)
+    }
+  }
+
+  async function setAccessLevel(level: AccessLevel) {
+    setAccessLevelState(level)
+    if (user) {
+      await supabase.from('profiles').update({ access_level: level }).eq('id', user.id)
     }
   }
 
@@ -85,6 +94,8 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
     personalityType,
     relationshipStyle,
     userEmail: user?.email || '',
+    accessLevel,
+    setAccessLevel,
     refreshProfile,
     setPersonalityTypeDirect: setPersonalityType,
     setRelationshipStyleDirect: setRelationshipStyle,

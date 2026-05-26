@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Check } from 'lucide-react'
 import { QUESTIONS, PART1_END, calculatePaeiType, type PaeiType } from '../data/paeiQuestions'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { useStage } from '../contexts/StageContext'
+import PricingSheet from '../components/PricingSheet'
 
 function shuffleArray<T>(arr: T[], seed: number): T[] {
   const result = [...arr]
@@ -45,21 +46,26 @@ function Part1ResultScreen({
   personalityType,
   scores,
   saveError,
+  accessLevel,
   onContinue,
   onFinish,
 }: {
   personalityType: string
   scores: Record<PaeiType, number>
   saveError?: string
+  accessLevel: string
   onContinue: () => void
   onFinish: () => void
 }) {
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const dominant = (['P', 'A', 'E', 'I'] as PaeiType[]).reduce((a, b) =>
     scores[a] >= scores[b] ? a : b
   )
 
   return (
     <div className="min-h-screen bg-[#FAF8F4] flex flex-col items-center justify-center px-4 py-10 text-center">
+      {showUpgrade && <PricingSheet onClose={() => setShowUpgrade(false)} upgradeOnly />}
+
       <div className="w-20 h-20 rounded-full bg-[#9E8B45]/10 flex items-center justify-center mb-6">
         <span className="text-3xl">🎯</span>
       </div>
@@ -80,16 +86,29 @@ function Part1ResultScreen({
         </p>
       )}
 
-      <button
-        onClick={onContinue}
-        className="w-full max-w-xs py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors mb-3"
-      >
-        Узнать стиль в отношениях →
-      </button>
-      <button
-        onClick={onFinish}
-        className="w-full max-w-xs py-3.5 rounded-xl border border-[#E8E4DC] text-[#6B6560] font-semibold text-sm hover:border-[#9E8B45] transition-colors"
-      >
+      {accessLevel === 'full' ? (
+        <>
+          <div className="w-full max-w-xs bg-[#9E8B45]/10 rounded-xl p-4 mb-4 text-left">
+            <p className="text-sm font-semibold text-[#1A1918]">🔓 Вторая часть открыта</p>
+            <p className="text-xs text-[#6B6560] mt-1">Узнайте свой стиль в отношениях прямо сейчас.</p>
+          </div>
+          <button onClick={onContinue} className="w-full max-w-xs py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors mb-3">
+            Пройти часть 2 →
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="w-full max-w-xs border border-[#E8E4DC] rounded-xl p-4 mb-4 text-left space-y-1">
+            <p className="text-sm font-semibold text-[#1A1918]">Хотите узнать больше?</p>
+            <p className="text-xs text-[#6B6560]">Откройте вторую часть — стиль в отношениях и совместимость с партнёром.</p>
+            <button onClick={() => setShowUpgrade(true)} className="text-sm text-[#9E8B45] font-semibold mt-1 hover:opacity-80">
+              Открыть за 700 ₽ →
+            </button>
+          </div>
+        </>
+      )}
+
+      <button onClick={onFinish} className="w-full max-w-xs py-3.5 rounded-xl border border-[#E8E4DC] text-[#6B6560] font-semibold text-sm hover:border-[#9E8B45] transition-colors">
         Открыть мой профиль
       </button>
     </div>
@@ -145,10 +164,12 @@ function Part2ResultScreen({
 
 export default function Test() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
-  const { setPersonalityTypeDirect, setRelationshipStyleDirect } = useStage()
+  const { setPersonalityTypeDirect, setRelationshipStyleDirect, accessLevel } = useStage()
 
-  const [currentQ, setCurrentQ] = useState(0)
+  const startPart = (location.state as { startPart?: number } | null)?.startPart ?? 1
+  const [currentQ, setCurrentQ] = useState(startPart === 2 ? PART1_END : 0)
   const [rankings, setRankings] = useState<number[]>([0, 0, 0, 0])
   const [allAnswers, setAllAnswers] = useState<(PaeiType | null)[]>(
     new Array(QUESTIONS.length).fill(null)
@@ -278,8 +299,9 @@ export default function Test() {
         personalityType={part1Result.personalityType}
         scores={part1Result.scores}
         saveError={part1Result.saveError}
+        accessLevel={accessLevel}
         onContinue={handleContinueToPart2}
-        onFinish={() => navigate('/about-me')}
+        onFinish={() => navigate('/')}
       />
     )
   }
