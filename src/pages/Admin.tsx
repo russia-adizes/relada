@@ -12,6 +12,7 @@ interface Profile {
   name: string | null
   personality_type: string | null
   relationship_style: string | null
+  access_level: string | null
   created_at: string
 }
 
@@ -107,6 +108,8 @@ function AdminPanel() {
   const [stats, setStats] = useState<Stats>({ total: 0, hasType: 0, hasStyle: 0 })
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loading, setLoading] = useState(true)
+  const [confirmReset, setConfirmReset] = useState<{ id: string; name: string } | null>(null)
+  const [resetting, setResetting] = useState(false)
   const [newCode, setNewCode] = useState('')
   const [newDiscount, setNewDiscount] = useState('')
   const [newMaxUses, setNewMaxUses] = useState('')
@@ -151,6 +154,24 @@ function AdminPanel() {
     setCoupons((prev) => prev.filter((c) => c.id !== id))
   }
 
+  async function resetUser(fullReset: boolean) {
+    if (!confirmReset) return
+    setResetting(true)
+    await supabase.rpc('admin_reset_user', { p_user_id: confirmReset.id, p_full_reset: fullReset })
+    setUsers((prev) => prev.map((u) =>
+      u.id === confirmReset.id
+        ? { ...u, personality_type: null, relationship_style: null, stage: 1, ...(fullReset ? { access_level: 'none' } : {}) }
+        : u
+    ))
+    setStats((prev) => ({
+      total: prev.total,
+      hasType: users.filter((u) => u.id !== confirmReset.id && u.personality_type).length,
+      hasStyle: users.filter((u) => u.id !== confirmReset.id && u.relationship_style).length,
+    }))
+    setResetting(false)
+    setConfirmReset(null)
+  }
+
   function formatDate(str: string) {
     return new Date(str).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
   }
@@ -162,6 +183,40 @@ function AdminPanel() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+
+      {confirmReset && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 28, width: 360, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#1A1918', marginBottom: 8 }}>Сбросить данные?</div>
+            <div style={{ fontSize: 13, color: '#6B6560', marginBottom: 24 }}>
+              Пользователь: <strong>{confirmReset.name || confirmReset.id.slice(0, 8)}</strong>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => resetUser(false)}
+                disabled={resetting}
+                style={{ background: '#9E8B45', color: '#fff', border: 'none', borderRadius: 10, padding: '11px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+              >
+                Только тест — сбросить результаты, сохранить оплату
+              </button>
+              <button
+                onClick={() => resetUser(true)}
+                disabled={resetting}
+                style={{ background: '#FEF2F2', color: '#EF4444', border: '1px solid #FCA5A5', borderRadius: 10, padding: '11px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+              >
+                Полностью — сбросить тест и доступ (как новый)
+              </button>
+              <button
+                onClick={() => setConfirmReset(null)}
+                disabled={resetting}
+                style={{ background: 'none', border: 'none', color: '#6B6560', fontSize: 13, cursor: 'pointer', padding: '8px 0' }}
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sidebar */}
       <aside style={{ width: 220, background: '#1A1918', minHeight: '100vh', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
@@ -243,7 +298,7 @@ function AdminPanel() {
               <div style={{ padding: '14px 20px', borderBottom: '1px solid #E8E4DC' }}>
                 <span style={{ fontSize: 14, fontWeight: 600 }}>Все пользователи ({users.length})</span>
               </div>
-              <UserTable users={users} formatDate={formatDate} />
+              <UserTable users={users} formatDate={formatDate} onReset={(id, name) => setConfirmReset({ id, name })} />
             </div>
           )}
 
@@ -305,12 +360,13 @@ function AdminPanel() {
   )
 }
 
-function UserTable({ users, formatDate }: { users: Profile[], formatDate: (s: string) => string }) {
+function UserTable({ users, formatDate, onReset }: { users: Profile[], formatDate: (s: string) => string, onReset?: (id: string, name: string) => void }) {
+  const headers = ['Имя / ID', 'Тип личности', 'Стиль', 'Дата', ...(onReset ? [''] : [])]
   return (
     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
         <tr style={{ background: '#FAF8F4' }}>
-          {['Имя / ID', 'Тип личности', 'Стиль', 'Дата'].map((h) => (
+          {headers.map((h) => (
             <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B6560', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
           ))}
         </tr>
@@ -333,6 +389,16 @@ function UserTable({ users, formatDate }: { users: Profile[], formatDate: (s: st
                 : <span style={{ color: '#9B9691', fontSize: 12 }}>—</span>}
             </td>
             <td style={{ padding: '12px 20px', fontSize: 12, color: '#6B6560' }}>{formatDate(u.created_at)}</td>
+            {onReset && (
+              <td style={{ padding: '12px 20px' }}>
+                <button
+                  onClick={() => onReset(u.id, u.name || '')}
+                  style={{ background: 'none', border: '1px solid #E8E4DC', borderRadius: 6, padding: '4px 10px', fontSize: 12, color: '#6B6560', cursor: 'pointer' }}
+                >
+                  Сбросить
+                </button>
+              </td>
+            )}
           </tr>
         ))}
       </tbody>
