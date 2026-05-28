@@ -41,31 +41,27 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
       .eq('id', user.id)
       .maybeSingle()
 
-    const cachedPt = localStorage.getItem(`relada_pt_${user.id}`)
-    const cachedRs = localStorage.getItem(`relada_rs_${user.id}`)
-
     if (data) {
       if (data.name) setUserName(data.name)
 
       if (data.personality_type) {
         setPersonalityType(data.personality_type)
         localStorage.setItem(`relada_pt_${user.id}`, data.personality_type)
-      } else if (cachedPt) {
-        setPersonalityType(cachedPt)
+      } else {
+        setPersonalityType('')
+        localStorage.removeItem(`relada_pt_${user.id}`)
       }
 
       if (data.relationship_style) {
         setRelationshipStyle(data.relationship_style)
         localStorage.setItem(`relada_rs_${user.id}`, data.relationship_style)
-      } else if (cachedRs) {
-        setRelationshipStyle(cachedRs)
+      } else {
+        setRelationshipStyle('')
+        localStorage.removeItem(`relada_rs_${user.id}`)
       }
 
       if (data.stage) setStageState(data.stage as Stage)
       if (data.access_level) setAccessLevelState(data.access_level as AccessLevel)
-    } else {
-      if (cachedPt) setPersonalityType(cachedPt)
-      if (cachedRs) setRelationshipStyle(cachedRs)
     }
   }
 
