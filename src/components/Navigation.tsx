@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Home, User, Heart, RefreshCw, BookOpen } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -10,6 +11,8 @@ const NAV_ITEMS = [
 ]
 
 export default function Navigation() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [activeId, setActiveId] = useState('home')
 
   useEffect(() => {
@@ -30,6 +33,10 @@ export default function Navigation() {
   }, [])
 
   function scrollTo(id: string) {
+    if (location.pathname !== '/') {
+      navigate('/')
+      return
+    }
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
