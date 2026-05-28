@@ -4,6 +4,7 @@ import AboutMe from './AboutMe'
 import Partner from './Partner'
 import Practice from './Practice'
 import Methodology from './Methodology'
+import { useStage } from '../contexts/StageContext'
 
 function SectionDivider({ label }: { label: string }) {
   return (
@@ -18,40 +19,46 @@ function SectionDivider({ label }: { label: string }) {
 }
 
 export default function Index() {
+  const { personalityType } = useStage()
+
   return (
     <div>
       <section id="home" className="space-y-4 pb-10">
         <HeroBlock />
-        <InsightTabs />
+        {personalityType && <InsightTabs />}
       </section>
 
-      <section id="about-me" className="pb-10">
-        <SectionDivider label="Обо мне" />
-        <div className="pt-4">
-          <AboutMe />
-        </div>
-      </section>
+      {personalityType && (
+        <>
+          <section id="about-me" className="pb-10">
+            <SectionDivider label="Обо мне" />
+            <div className="pt-4">
+              <AboutMe />
+            </div>
+          </section>
 
-      <section id="partner" className="pb-10">
-        <SectionDivider label="С партнёром" />
-        <div className="pt-4">
-          <Partner />
-        </div>
-      </section>
+          <section id="partner" className="pb-10">
+            <SectionDivider label="С партнёром" />
+            <div className="pt-4">
+              <Partner />
+            </div>
+          </section>
 
-      <section id="practice" className="pb-10">
-        <SectionDivider label="Практика" />
-        <div className="pt-4">
-          <Practice />
-        </div>
-      </section>
+          <section id="practice" className="pb-10">
+            <SectionDivider label="Практика" />
+            <div className="pt-4">
+              <Practice />
+            </div>
+          </section>
 
-      <section id="methodology" className="pb-10">
-        <SectionDivider label="О методике" />
-        <div className="pt-4">
-          <Methodology />
-        </div>
-      </section>
+          <section id="methodology" className="pb-10">
+            <SectionDivider label="О методике" />
+            <div className="pt-4">
+              <Methodology />
+            </div>
+          </section>
+        </>
+      )}
     </div>
   )
 }
