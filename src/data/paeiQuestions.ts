@@ -416,19 +416,20 @@ export const QUESTIONS: Question[] = [
   },
 ]
 
-// Thresholds for 40-question format (avg 10 per type). Pending specialist confirmation.
-const CAPITAL_THRESHOLD = 12
-const LOWERCASE_THRESHOLD = 7
-
-export function calculatePaeiType(scores: Record<PaeiType, number>, totalQuestions = 40): string {
-  const capitalThreshold = Math.round(CAPITAL_THRESHOLD * totalQuestions / 40)
-  const lowercaseThreshold = Math.round(LOWERCASE_THRESHOLD * totalQuestions / 40)
+// Scores are normalized to 100 before calling this function.
+// ≥26 → capital letter, <26 → lowercase letter (including zero, masked as lowercase)
+export function calculatePaeiType(normalizedScores: Record<PaeiType, number>): string {
   return (['P', 'A', 'E', 'I'] as PaeiType[])
-    .map((type) => {
-      const score = scores[type]
-      if (score >= capitalThreshold) return type
-      if (score >= lowercaseThreshold) return type.toLowerCase()
-      return '-'
-    })
+    .map((type) => normalizedScores[type] >= 26 ? type : type.toLowerCase())
     .join('')
+}
+
+export function normalizeScores(raw: Record<PaeiType, number>): Record<PaeiType, number> {
+  const total = raw.P + raw.A + raw.E + raw.I || 1
+  return {
+    P: Math.round(raw.P / total * 100),
+    A: Math.round(raw.A / total * 100),
+    E: Math.round(raw.E / total * 100),
+    I: Math.round(raw.I / total * 100),
+  }
 }

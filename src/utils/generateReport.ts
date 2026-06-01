@@ -32,14 +32,21 @@ export function generateReport(data: ReportData) {
   const total = data.total ?? (Object.values(data.scores).reduce((a, b) => a + b, 0) || 1)
 
   const scoreRows = (['P', 'A', 'E', 'I'] as PaeiType[]).map((type) => {
-    const pct = Math.round((data.scores[type] / total) * 100)
+    const score = data.scores[type]
+    const pct = Math.round((score / total) * 100)
+    const zone = score >= 26
+      ? '<span class="zone-high">доминирует</span>'
+      : score >= 16
+        ? '<span class="zone-mid">присутствует, но не является ведущей чертой</span>'
+        : '<span class="zone-low">минимально выражено</span>'
     return `
       <div class="score-row">
         <span class="score-label">${type}</span>
         <div class="score-bar-track">
           <div class="score-bar-fill" style="width:${pct}%"></div>
         </div>
-        <span class="score-num">${data.scores[type]}</span>
+        <span class="score-num">${score}</span>
+        ${zone}
       </div>`
   }).join('')
 
@@ -80,11 +87,14 @@ export function generateReport(data: ReportData) {
     /* Scores */
     .section { margin-bottom: 32px; }
     .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9E8B45; margin-bottom: 14px; }
-    .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .score-label { width: 16px; font-weight: 700; font-size: 13px; color: #9E8B45; flex-shrink: 0; }
-    .score-bar-track { flex: 1; height: 8px; background: #F0EDE6; border-radius: 4px; overflow: hidden; }
+    .score-bar-track { width: 140px; height: 8px; background: #F0EDE6; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
     .score-bar-fill { height: 100%; background: #9E8B45; border-radius: 4px; }
-    .score-num { width: 24px; text-align: right; font-size: 13px; color: #6B6560; flex-shrink: 0; }
+    .score-num { width: 28px; text-align: right; font-size: 13px; color: #6B6560; flex-shrink: 0; }
+    .zone-high { font-size: 11px; font-weight: 600; color: #9E8B45; }
+    .zone-mid { font-size: 11px; color: #6B6560; }
+    .zone-low { font-size: 11px; color: #9B9691; }
 
     /* Description */
     .description-text { font-size: 14px; color: #3A3633; line-height: 1.7; margin-bottom: 10px; }

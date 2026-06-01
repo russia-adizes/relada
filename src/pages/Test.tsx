@@ -18,7 +18,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { QUESTIONS, PART1_END, calculatePaeiType, type PaeiType, type Answer } from '../data/paeiQuestions'
+import { QUESTIONS, PART1_END, calculatePaeiType, normalizeScores, type PaeiType, type Answer } from '../data/paeiQuestions'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { useStage } from '../contexts/StageContext'
@@ -254,7 +254,7 @@ export default function Test() {
   const [orderedAnswers, setOrderedAnswers] = useState<Answer[]>(
     () => shuffleArray(QUESTIONS[startIndex].answers, startIndex + 1)
   )
-  const [allAnswers, setAllAnswers] = useState<(PaeiType | null)[]>(
+  const [allAnswers, setAllAnswers] = useState<(PaeiType[] | null)[]>(
     new Array(QUESTIONS.length).fill(null)
   )
   const [part1Result, setPart1Result] = useState<{
@@ -284,26 +284,30 @@ export default function Test() {
   }
 
   function handleNext() {
-    const topAnswer = orderedAnswers[0]
+    const rankedTypes = orderedAnswers.map(a => a.type)
     const updated = [...allAnswers]
-    updated[currentQ] = topAnswer.type
+    updated[currentQ] = rankedTypes
     setAllAnswers(updated)
 
     if (currentQ === PART1_END - 1) {
-      finishPart1(updated.slice(0, PART1_END) as PaeiType[])
+      finishPart1(updated.slice(0, PART1_END) as PaeiType[][])
     } else if (currentQ < QUESTIONS.length - 1) {
       const nextQ = currentQ + 1
       setCurrentQ(nextQ)
       setOrderedAnswers(shuffleArray(QUESTIONS[nextQ].answers, nextQ + 1))
     } else {
-      finishPart2(updated.slice(PART1_END) as PaeiType[])
+      finishPart2(updated.slice(PART1_END) as PaeiType[][])
     }
   }
 
-  async function finishPart1(answers: PaeiType[]) {
-    const scores: Record<PaeiType, number> = { P: 0, A: 0, E: 0, I: 0 }
-    for (const type of answers) scores[type]++
-    const personalityType = calculatePaeiType(scores, PART1_END)
+  async function finishPart1(answers: PaeiType[][]) {
+    const raw: Record<PaeiType, number> = { P: 0, A: 0, E: 0, I: 0 }
+    const weights = [4, 3, 2, 1]
+    for (const ranking of answers) {
+      ranking.forEach((type, pos) => { raw[type] += weights[pos] })
+    }
+    const scores = normalizeScores(raw)
+    const personalityType = calculatePaeiType(scores)
 
     setPersonalityTypeDirect(personalityType)
 
@@ -328,10 +332,14 @@ export default function Test() {
     }
   }
 
-  async function finishPart2(answers: PaeiType[]) {
-    const scores: Record<PaeiType, number> = { P: 0, A: 0, E: 0, I: 0 }
-    for (const type of answers) scores[type]++
-    const relationshipStyle = calculatePaeiType(scores, QUESTIONS.length - PART1_END)
+  async function finishPart2(answers: PaeiType[][]) {
+    const raw: Record<PaeiType, number> = { P: 0, A: 0, E: 0, I: 0 }
+    const weights = [4, 3, 2, 1]
+    for (const ranking of answers) {
+      ranking.forEach((type, pos) => { raw[type] += weights[pos] })
+    }
+    const scores = normalizeScores(raw)
+    const relationshipStyle = calculatePaeiType(scores)
 
     setRelationshipStyleDirect(relationshipStyle)
 
