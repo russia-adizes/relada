@@ -1,7 +1,23 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Check } from 'lucide-react'
-import { QUESTIONS, PART1_END, calculatePaeiType, type PaeiType } from '../data/paeiQuestions'
+import { ArrowLeft, GripVertical } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  DragEndEvent,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { QUESTIONS, PART1_END, calculatePaeiType, type PaeiType, type Answer } from '../data/paeiQuestions'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { useStage } from '../contexts/StageContext'
@@ -21,6 +37,50 @@ const TYPE_LABELS: Record<string, string> = {
   A: 'Администратор',
   E: 'Предприниматель',
   I: 'Интегратор',
+}
+
+function SortableAnswerCard({ answer, rank }: { answer: Answer; rank: number }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: answer.text,
+  })
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 10 : 'auto',
+      }}
+      className={[
+        'w-full bg-white rounded-xl border px-4 py-3.5 flex items-center gap-3 select-none',
+        rank === 1 ? 'border-[#9E8B45] shadow-sm' : 'border-[#E8E4DC]',
+        isDragging ? 'shadow-lg' : '',
+      ].join(' ')}
+    >
+      <div
+        className={[
+          'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold',
+          rank === 1
+            ? 'bg-[#9E8B45] text-white'
+            : 'bg-[#9E8B45]/15 text-[#9E8B45]',
+        ].join(' ')}
+      >
+        {rank}
+      </div>
+      <span className="text-sm leading-snug text-[#1A1918] font-medium flex-1">
+        {answer.text}
+      </span>
+      <div
+        {...attributes}
+        {...listeners}
+        className="text-[#C8BA8A] hover:text-[#9E8B45] cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
+      >
+        <GripVertical size={18} />
+      </div>
+    </div>
+  )
 }
 
 function ScoreBars({ scores, total }: { scores: Record<PaeiType, number>; total: number }) {
@@ -169,8 +229,12 @@ export default function Test() {
   const { setPersonalityTypeDirect, setRelationshipStyleDirect, accessLevel } = useStage()
 
   const startPart = (location.state as { startPart?: number } | null)?.startPart ?? 1
-  const [currentQ, setCurrentQ] = useState(startPart === 2 ? PART1_END : 0)
-  const [rankings, setRankings] = useState<number[]>([0, 0, 0, 0])
+  const startIndex = startPart === 2 ? PART1_END : 0
+
+  const [currentQ, setCurrentQ] = useState(startIndex)
+  const [orderedAnswers, setOrderedAnswers] = useState<Answer[]>(
+    () => shuffleArray(QUESTIONS[startIndex].answers, startIndex + 1)
+  )
   const [allAnswers, setAllAnswers] = useState<(PaeiType | null)[]>(
     new Array(QUESTIONS.length).fill(null)
   )
@@ -185,34 +249,23 @@ export default function Test() {
     saveError?: string
   } | null>(null)
 
-  const question = QUESTIONS[currentQ]
-
-  const shuffledAnswers = useMemo(
-    () => shuffleArray(question.answers, currentQ + 1),
-    [currentQ]
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
   )
 
-  function handleCardClick(index: number) {
-    const current = rankings[index]
-    if (current > 0) {
-      setRankings((prev) =>
-        prev.map((r, i) => {
-          if (i === index) return 0
-          if (r > current) return r - 1
-          return r
-        })
-      )
-    } else {
-      const nextRank = Math.max(...rankings) + 1
-      if (nextRank > 4) return
-      setRankings((prev) => prev.map((r, i) => (i === index ? nextRank : r)))
-    }
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setOrderedAnswers((items) => {
+      const oldIndex = items.findIndex((a) => a.text === active.id)
+      const newIndex = items.findIndex((a) => a.text === over.id)
+      return arrayMove(items, oldIndex, newIndex)
+    })
   }
 
   function handleNext() {
-    const rank1Index = rankings.findIndex((r) => r === 1)
-    const topAnswer = shuffledAnswers[rank1Index]
-
+    const topAnswer = orderedAnswers[0]
     const updated = [...allAnswers]
     updated[currentQ] = topAnswer.type
     setAllAnswers(updated)
@@ -220,8 +273,9 @@ export default function Test() {
     if (currentQ === PART1_END - 1) {
       finishPart1(updated.slice(0, PART1_END) as PaeiType[])
     } else if (currentQ < QUESTIONS.length - 1) {
-      setCurrentQ(currentQ + 1)
-      setRankings([0, 0, 0, 0])
+      const nextQ = currentQ + 1
+      setCurrentQ(nextQ)
+      setOrderedAnswers(shuffleArray(QUESTIONS[nextQ].answers, nextQ + 1))
     } else {
       finishPart2(updated.slice(PART1_END) as PaeiType[])
     }
@@ -284,10 +338,10 @@ export default function Test() {
   function handleContinueToPart2() {
     setPart1Result(null)
     setCurrentQ(PART1_END)
-    setRankings([0, 0, 0, 0])
+    setOrderedAnswers(shuffleArray(QUESTIONS[PART1_END].answers, PART1_END + 1))
   }
 
-  const allRanked = rankings.every((r) => r > 0)
+  const question = QUESTIONS[currentQ]
   const progress = (currentQ / QUESTIONS.length) * 100
   const isPart1Last = currentQ === PART1_END - 1
   const isPart2Last = currentQ === QUESTIONS.length - 1
@@ -357,51 +411,21 @@ export default function Test() {
           </h2>
         </div>
 
-        <div className="space-y-2">
-          {shuffledAnswers.map((answer, index) => {
-            const rank = rankings[index]
-            const isRanked = rank > 0
-            return (
-              <button
-                key={answer.text}
-                onClick={() => handleCardClick(index)}
-                className={[
-                  'w-full text-left rounded-xl border px-4 py-3.5 flex items-center gap-3 transition-all duration-150',
-                  isRanked
-                    ? 'bg-white border-[#9E8B45] shadow-sm'
-                    : 'bg-white border-[#E8E4DC] hover:border-[#C8BA8A]',
-                ].join(' ')}
-              >
-                <div
-                  className={[
-                    'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold transition-all',
-                    isRanked
-                      ? rank === 1
-                        ? 'bg-[#9E8B45] text-white'
-                        : 'bg-[#9E8B45]/15 text-[#9E8B45]'
-                      : 'bg-[#F0EDE6] text-[#6B6560]',
-                  ].join(' ')}
-                >
-                  {isRanked ? rank : ''}
-                </div>
-                <span
-                  className={[
-                    'text-sm leading-snug',
-                    isRanked ? 'text-[#1A1918] font-medium' : 'text-[#6B6560]',
-                  ].join(' ')}
-                >
-                  {answer.text}
-                </span>
-                {rank === 1 && (
-                  <Check size={14} className="ml-auto text-[#9E8B45] flex-shrink-0" />
-                )}
-              </button>
-            )
-          })}
-        </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={orderedAnswers.map((a) => a.text)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-2">
+              {orderedAnswers.map((answer, index) => (
+                <SortableAnswerCard key={answer.text} answer={answer} rank={index + 1} />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         <p className="text-xs text-[#6B6560] text-center">
-          Нажмите на варианты в порядке от подходящего к наименее подходящему
+          Перетащите варианты: сверху — самый подходящий, снизу — наименее
         </p>
       </div>
 
@@ -410,13 +434,7 @@ export default function Test() {
         <div className="max-w-xl mx-auto">
           <button
             onClick={handleNext}
-            disabled={!allRanked}
-            className={[
-              'w-full py-3.5 rounded-xl font-semibold text-sm transition-all',
-              allRanked
-                ? 'bg-[#9E8B45] text-white hover:bg-[#8A7A3A]'
-                : 'bg-[#E8E4DC] text-[#6B6560] cursor-not-allowed',
-            ].join(' ')}
+            className="w-full py-3.5 rounded-xl font-semibold text-sm transition-all bg-[#9E8B45] text-white hover:bg-[#8A7A3A]"
           >
             {isPart1Last ? 'Завершить часть 1' : isPart2Last ? 'Завершить тест' : 'Далее →'}
           </button>
