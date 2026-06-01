@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, GripVertical } from 'lucide-react'
+import { ArrowLeft, GripVertical, Download } from 'lucide-react'
+import { generateReport } from '../utils/generateReport'
 import {
   DndContext,
   closestCenter,
@@ -107,6 +108,7 @@ function Part1ResultScreen({
   scores,
   saveError,
   accessLevel,
+  userName,
   onContinue,
   onFinish,
 }: {
@@ -114,6 +116,7 @@ function Part1ResultScreen({
   scores: Record<PaeiType, number>
   saveError?: string
   accessLevel: string
+  userName?: string
   onContinue: () => void
   onFinish: () => void
 }) {
@@ -168,6 +171,13 @@ function Part1ResultScreen({
         </>
       )}
 
+      <button
+        onClick={() => generateReport({ part: 1, resultType: personalityType, scores, total: PART1_END, userName })}
+        className="w-full max-w-xs py-3 rounded-xl border border-[#9E8B45] text-[#9E8B45] font-semibold text-sm hover:bg-[#9E8B45]/5 transition-colors flex items-center justify-center gap-2 mb-3"
+      >
+        <Download size={15} />
+        Скачать отчёт PDF
+      </button>
       <button onClick={onFinish} className="w-full max-w-xs py-3.5 rounded-xl border border-[#E8E4DC] text-[#6B6560] font-semibold text-sm hover:border-[#9E8B45] transition-colors">
         Открыть мой профиль
       </button>
@@ -179,11 +189,13 @@ function Part2ResultScreen({
   relationshipStyle,
   scores,
   saveError,
+  userName,
   onFinish,
 }: {
   relationshipStyle: string
   scores: Record<PaeiType, number>
   saveError?: string
+  userName?: string
   onFinish: () => void
 }) {
   const dominant = (['P', 'A', 'E', 'I'] as PaeiType[]).reduce((a, b) =>
@@ -212,6 +224,13 @@ function Part2ResultScreen({
         </p>
       )}
 
+      <button
+        onClick={() => generateReport({ part: 2, resultType: relationshipStyle, scores, total: QUESTIONS.length - PART1_END, userName })}
+        className="w-full max-w-xs py-3 rounded-xl border border-[#9E8B45] text-[#9E8B45] font-semibold text-sm hover:bg-[#9E8B45]/5 transition-colors flex items-center justify-center gap-2 mb-3"
+      >
+        <Download size={15} />
+        Скачать отчёт PDF
+      </button>
       <button
         onClick={onFinish}
         className="w-full max-w-xs py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors"
@@ -347,6 +366,8 @@ export default function Test() {
   const isPart2Last = currentQ === QUESTIONS.length - 1
   const isInPart2 = currentQ >= PART1_END
 
+  const userName = user?.user_metadata?.name || user?.email
+
   if (part1Result) {
     return (
       <Part1ResultScreen
@@ -354,6 +375,7 @@ export default function Test() {
         scores={part1Result.scores}
         saveError={part1Result.saveError}
         accessLevel={accessLevel}
+        userName={userName}
         onContinue={handleContinueToPart2}
         onFinish={() => navigate('/')}
       />
@@ -366,6 +388,7 @@ export default function Test() {
         relationshipStyle={part2Result.relationshipStyle}
         scores={part2Result.scores}
         saveError={part2Result.saveError}
+        userName={userName}
         onFinish={() => navigate('/about-me')}
       />
     )
