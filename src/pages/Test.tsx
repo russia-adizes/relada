@@ -310,6 +310,7 @@ export default function Test() {
     const { data: { session } } = await supabase.auth.getSession()
     const uid = session?.user?.id ?? user?.id
     if (uid) localStorage.setItem(`relada_pt_${uid}`, personalityType)
+    localStorage.setItem('relada_scores1', JSON.stringify(scores))
 
     setPart1Result({ personalityType, scores })
 
@@ -337,6 +338,7 @@ export default function Test() {
     const { data: { session } } = await supabase.auth.getSession()
     const uid = session?.user?.id ?? user?.id
     if (uid) localStorage.setItem(`relada_rs_${uid}`, relationshipStyle)
+    localStorage.setItem('relada_scores2', JSON.stringify(scores))
 
     setPart2Result({ relationshipStyle, scores })
 

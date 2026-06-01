@@ -1,13 +1,37 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Download } from 'lucide-react'
 import { useStage } from '../../contexts/StageContext'
+import { useAuth } from '../../contexts/AuthContext'
 import PricingSheet from '../PricingSheet'
+import { generateReport } from '../../utils/generateReport'
+import type { PaeiType } from '../../data/paeiQuestions'
+
+function loadScores(part: 1 | 2): Record<PaeiType, number> {
+  try {
+    const raw = localStorage.getItem(`relada_scores${part}`)
+    if (raw) return JSON.parse(raw)
+  } catch {}
+  return { P: 1, A: 1, E: 1, I: 1 }
+}
 
 export default function HeroBlock() {
   const { userName, personalityType, relationshipStyle, accessLevel } = useStage()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [showPricing, setShowPricing] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
+
+  function downloadReport(part: 1 | 2) {
+    const type = part === 1 ? personalityType : relationshipStyle
+    if (!type) return
+    generateReport({
+      part,
+      resultType: type,
+      scores: loadScores(part),
+      userName: user?.user_metadata?.name || user?.email,
+    })
+  }
 
   function scrollTo(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -81,6 +105,9 @@ export default function HeroBlock() {
         <button className="btn-outline text-sm" onClick={() => scrollTo('about-me')}>
           Смотреть результаты части 1 →
         </button>
+        <button className="btn-outline text-sm flex items-center gap-1.5" onClick={() => downloadReport(1)}>
+          <Download size={13} /> Скачать отчёт PDF
+        </button>
       </div>
     )
   }
@@ -106,6 +133,9 @@ export default function HeroBlock() {
             </button>
             <button className="btn-outline" onClick={() => setShowUpgrade(true)}>
               Узнать стиль в отношениях
+            </button>
+            <button className="btn-outline flex items-center gap-1.5" onClick={() => downloadReport(1)}>
+              <Download size={13} /> Скачать отчёт PDF
             </button>
           </div>
         </div>
@@ -134,6 +164,12 @@ export default function HeroBlock() {
         </button>
         <button className="btn-outline" onClick={() => scrollTo('partner')}>
           С партнёром
+        </button>
+        <button className="btn-outline flex items-center gap-1.5" onClick={() => downloadReport(1)}>
+          <Download size={13} /> Отчёт часть 1
+        </button>
+        <button className="btn-outline flex items-center gap-1.5" onClick={() => downloadReport(2)}>
+          <Download size={13} /> Отчёт часть 2
         </button>
       </div>
     </div>

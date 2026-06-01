@@ -13,7 +13,7 @@ export interface ReportData {
   part: 1 | 2
   resultType: string
   scores: Record<PaeiType, number>
-  total: number
+  total?: number
 }
 
 function getDominantLabel(resultType: string, scores: Record<PaeiType, number>): string {
@@ -23,27 +23,16 @@ function getDominantLabel(resultType: string, scores: Record<PaeiType, number>):
   return TYPE_LABELS[dominant] || resultType
 }
 
-function scoreBar(value: number, total: number): string {
-  const pct = Math.round((value / total) * 100)
-  return `
-    <div class="score-row">
-      <span class="score-label">${value > 0 ? (['P','A','E','I'].find((_, i) => i === Object.values({ P: 0, A: 1, E: 2, I: 3 })[i]) || '') : ''}</span>
-      <div class="score-bar-track">
-        <div class="score-bar-fill" style="width:${pct}%"></div>
-      </div>
-      <span class="score-num">${value}</span>
-    </div>`
-}
-
 export function generateReport(data: ReportData) {
   const insight = getInsight(data.resultType)
   const dominantLabel = getDominantLabel(data.resultType, data.scores)
   const date = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
   const partTitle = data.part === 1 ? 'Тип личности' : 'Стиль в отношениях'
   const partSubtitle = data.part === 1 ? 'Часть 1 · Личностный профиль' : 'Часть 2 · Профиль в отношениях'
+  const total = data.total ?? (Object.values(data.scores).reduce((a, b) => a + b, 0) || 1)
 
   const scoreRows = (['P', 'A', 'E', 'I'] as PaeiType[]).map((type) => {
-    const pct = Math.round((data.scores[type] / data.total) * 100)
+    const pct = Math.round((data.scores[type] / total) * 100)
     return `
       <div class="score-row">
         <span class="score-label">${type}</span>
