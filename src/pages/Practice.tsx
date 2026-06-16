@@ -31,7 +31,7 @@ export default function Practice() {
       <div>
         <h1 className="text-2xl font-bold text-[#1A1918]">Практика</h1>
         <p className="text-sm text-[#6B6560] mt-1">
-          Маленькие шаги для типа <span className="text-[#9E8B45] font-semibold">{personalityType}</span>.
+          Конкретные шаги для типа <span className="text-[#9E8B45] font-semibold">{personalityType}</span> — в жизни и в отношениях.
         </p>
       </div>
 

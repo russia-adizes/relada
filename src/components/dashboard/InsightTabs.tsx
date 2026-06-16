@@ -5,9 +5,9 @@ import { getInsight } from '../../data/paeiInsights'
 type TabId = 'short' | 'strengths' | 'overload'
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: 'short', label: '💡 Коротко' },
+  { id: 'short', label: '💡 Кратко о вас' },
   { id: 'strengths', label: '🛡 Мои сильные стороны' },
-  { id: 'overload', label: '⚡ Что меня перегружает' },
+  { id: 'overload', label: '⚡ Что меня истощает' },
 ]
 
 export default function InsightTabs() {
@@ -20,7 +20,7 @@ export default function InsightTabs() {
 
   return (
     <div className="card space-y-4">
-      <h2 className="text-lg font-semibold text-[#1A1918]">Ваши инсайты</h2>
+      <h2 className="text-lg font-semibold text-[#1A1918]">О вас в отношениях</h2>
 
       <div className="flex items-center gap-1 flex-wrap">
         {TABS.map((tab) => (

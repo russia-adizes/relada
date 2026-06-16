@@ -58,7 +58,7 @@ export default function Auth() {
         options: { data: { name } },
       })
       if (error) setError(error.message)
-      else setMessage('Проверь почту — мы отправили письмо для подтверждения.')
+      else setMessage('Проверьте почту — мы отправили письмо с подтверждением.')
 
     } else if (mode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -69,7 +69,7 @@ export default function Auth() {
         redirectTo: `${window.location.origin}/reset-password`,
       })
       if (error) setError(error.message)
-      else setMessage('Письмо отправлено! Проверь почту и перейди по ссылке.')
+      else setMessage('Письмо отправлено! Проверьте почту и перейдите по ссылке.')
     }
 
     setLoading(false)
@@ -238,6 +238,16 @@ export default function Auth() {
             {loading ? 'Загрузка...' : 'Войти'}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => { localStorage.setItem('relada_demo', 'true'); window.location.href = '/' }}
+            className="text-xs text-[#6B6560]/60 hover:text-[#9E8B45] transition-colors underline underline-offset-2"
+          >
+            Войти как демо
+          </button>
+        </div>
 
         {role === 'user' && (
           <p className="text-center text-xs text-[#6B6560] mt-4">

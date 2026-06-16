@@ -13,34 +13,34 @@ const TIERS = [
     id: 'basic' as AccessLevel,
     name: 'Базовый',
     price: '990 ₽',
-    description: 'Тест PAEI — мой тип личности',
-    features: ['20 вопросов', 'Тип личности PAEI', 'Персональные инсайты', 'Ежедневные практики'],
+    description: 'Узнайте свой тип — как вы устроены',
+    features: ['20 вопросов', 'Ваш тип: как вы устроены', 'Персональные инсайты', 'Практики на каждый день'],
     accent: false,
   },
   {
     id: 'full' as AccessLevel,
     name: 'Расширенный',
     price: '1 690 ₽',
-    description: 'Полный анализ: тип + стиль в отношениях',
-    features: ['40 вопросов', 'Тип личности PAEI', 'Стиль в отношениях', 'Совместимость с партнёром', 'Полные практики'],
+    description: 'Тип + стиль в паре — полная картина',
+    features: ['40 вопросов', 'Ваш тип: как вы устроены', 'Стиль в паре: как вы ведёте себя рядом с близкими', 'Почему вы ссоритесь и как это изменить', 'Практики под ваш тип — на каждый день и в кризис'],
     accent: true,
   },
   {
     id: 'full' as AccessLevel,
     name: 'С консультацией',
     price: '4 900 ₽',
-    description: 'Полный анализ + разбор с экспертом',
-    features: ['Всё из Расширенного', 'Личная консультация 60 мин', 'Разбор вашего типа', 'Рекомендации'],
+    description: 'Полная картина + разбор с экспертом',
+    features: ['Всё из Расширенного', 'Личная консультация 60 мин', 'Разбор вашего типа и типа партнёра', 'Конкретные рекомендации'],
     accent: false,
   },
 ]
 
 const UPGRADE_TIER = {
   id: 'full' as AccessLevel,
-  name: 'Стиль в отношениях',
+  name: 'Стиль в паре',
   price: '700 ₽',
-  description: 'Вторая часть: как вы проявляетесь рядом с близкими',
-  features: ['20 вопросов', 'Стиль в отношениях', 'Совместимость с партнёром', 'Расширенные практики'],
+  description: 'Как вы ведёте себя в отношениях — и почему одни сценарии повторяются',
+  features: ['20 вопросов', 'Стиль в паре: как вы проявляетесь рядом с близкими', 'Почему вы ссоритесь и как это изменить', 'Расширенные практики'],
 }
 
 export default function PricingSheet({ onClose, upgradeOnly = false }: PricingSheetProps) {
@@ -76,14 +76,14 @@ export default function PricingSheet({ onClose, upgradeOnly = false }: PricingSh
             <div>
               <h2 className="text-lg font-bold text-[#1A1918]">Доступ открыт!</h2>
               <p className="text-sm text-[#6B6560] mt-1">
-                Вы можете пройти тест сейчас или вернуться позже — доступ сохранится.
+                Уже через 15 минут поймёте, почему одни сценарии повторяются — и что с этим делать.
               </p>
             </div>
             <button onClick={goToTest} className="w-full py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors">
-              Начать тест сейчас →
+              Пройти тест →
             </button>
             <button onClick={onClose} className="w-full py-3 text-sm text-[#6B6560] hover:text-[#1A1918] transition-colors">
-              Вернуться в кабинет — пройду позже
+              Вернуться в кабинет
             </button>
           </div>
         </div>
@@ -96,11 +96,11 @@ export default function PricingSheet({ onClose, upgradeOnly = false }: PricingSh
       <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" onClick={(e) => e.target === e.currentTarget && onClose()}>
         <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden">
           <div className="flex justify-between items-center px-5 pt-5 pb-3">
-            <h2 className="text-base font-bold text-[#1A1918]">Открыть часть 2</h2>
+            <h2 className="text-base font-bold text-[#1A1918]">Узнайте себя в паре</h2>
             <button onClick={onClose}><X size={18} className="text-[#6B6560]" /></button>
           </div>
           <div className="px-5 pb-6 space-y-4">
-            <p className="text-sm text-[#6B6560]">Узнайте, как ваш тип личности проявляется рядом с близкими.</p>
+            <p className="text-sm text-[#6B6560]">Как вы ведёте себя в отношениях — и откуда берутся повторяющиеся ссоры.</p>
             <div className="border border-[#9E8B45]/30 rounded-xl p-4 bg-[#9E8B45]/5 space-y-2">
               <div className="flex justify-between items-start">
                 <span className="font-semibold text-[#1A1918] text-sm">{UPGRADE_TIER.name}</span>
@@ -119,7 +119,7 @@ export default function PricingSheet({ onClose, upgradeOnly = false }: PricingSh
               disabled={loading}
               className="w-full py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors disabled:opacity-50"
             >
-              {loading ? 'Открываем...' : 'Оплатить 700 ₽ →'}
+              {loading ? 'Открываем...' : 'Узнать стиль в паре — 700 ₽ →'}
             </button>
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function PricingSheet({ onClose, upgradeOnly = false }: PricingSh
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center px-5 pt-5 pb-3 sticky top-0 bg-white border-b border-[#F0EDE7]">
-          <h2 className="text-base font-bold text-[#1A1918]">Выберите тариф</h2>
+          <h2 className="text-base font-bold text-[#1A1918]">Выберите формат</h2>
           <button onClick={onClose}><X size={18} className="text-[#6B6560]" /></button>
         </div>
 

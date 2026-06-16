@@ -48,10 +48,10 @@ export default function HeroBlock() {
           </div>
           <div>
             <p className="text-sm text-[#6B6560]">Добро пожаловать, {userName || 'друг'}!</p>
-            <h1 className="text-xl font-bold text-[#1A1918] mt-1">Узнайте свой тип личности</h1>
+            <h1 className="text-xl font-bold text-[#1A1918] mt-1">Одни и те же ссоры? Возможно, дело не в вас.</h1>
           </div>
           <p className="text-sm text-[#6B6560] leading-relaxed max-w-xs mx-auto">
-            Пройдите тест PAEI — узнайте как вы думаете, принимаете решения и строите отношения.
+            RELADA за 15 минут покажет ваш тип и стиль в отношениях по методологии Адизеса — и объяснит, почему одни сценарии повторяются снова и снова.
           </p>
           <button onClick={() => setShowPricing(true)} className="btn-primary mx-auto">
             Пройти тест →
@@ -70,10 +70,10 @@ export default function HeroBlock() {
         </div>
         <div>
           <p className="text-sm text-[#6B6560]">Добро пожаловать, {userName || 'друг'}!</p>
-          <h1 className="text-xl font-bold text-[#1A1918] mt-1">Доступ открыт — пройдите тест</h1>
+          <h1 className="text-xl font-bold text-[#1A1918] mt-1">Ваш доступ готов — начнём?</h1>
         </div>
         <p className="text-sm text-[#6B6560] leading-relaxed max-w-xs mx-auto">
-          Вы можете начать прямо сейчас или вернуться позже — доступ сохранится.
+          Уже сегодня поймёте, почему рядом с одними людьми легко, а с другими — нет.
         </p>
         <button onClick={() => navigate('/test')} className="btn-primary mx-auto">
           Начать тест →
@@ -93,13 +93,13 @@ export default function HeroBlock() {
           </h1>
         </div>
         <div className="bg-[#9E8B45]/10 rounded-xl p-4 space-y-2">
-          <p className="text-sm font-semibold text-[#1A1918]">🔓 Вторая часть открыта</p>
-          <p className="text-xs text-[#6B6560]">Узнайте свой стиль в отношениях — как вы проявляетесь рядом с близкими.</p>
+          <p className="text-sm font-semibold text-[#1A1918]">🔓 Как вы проявляетесь рядом с партнёром</p>
+          <p className="text-xs text-[#6B6560]">Вторая часть — про отношения. Узнайте свой стиль рядом с близкими и почему одни сценарии повторяются.</p>
           <button
             onClick={() => navigate('/test', { state: { startPart: 2 } })}
             className="btn-primary text-sm mt-1"
           >
-            Пройти часть 2 →
+            Перейти к отношениям →
           </button>
         </div>
         <button className="btn-outline text-sm" onClick={() => scrollTo('about-me')}>
@@ -125,7 +125,7 @@ export default function HeroBlock() {
             </h1>
           </div>
           <p className="text-sm text-[#6B6560] leading-relaxed">
-            Это ваши базовые настройки. Хотите узнать как вы проявляетесь в близких отношениях?
+            Это ваш базовый тип. Хотите понять, как вы ведёте себя именно в отношениях — и почему с партнёром иногда говорите как будто на разных языках?
           </p>
           <div className="flex flex-wrap gap-3">
             <button className="btn-primary" onClick={() => scrollTo('about-me')}>
@@ -156,14 +156,19 @@ export default function HeroBlock() {
         </h1>
       </div>
       <p className="text-sm text-[#6B6560] leading-relaxed">
-        Это ваши базовые настройки: как вы думаете, реагируете и к чему возвращаетесь в стрессе.
+        Это ваш язык — как вы думаете, реагируете и что вас заряжает или истощает рядом с близкими.
       </p>
+      <div className="bg-[#F5F2EC] rounded-xl px-4 py-3">
+        <p className="text-xs text-[#6B6560] leading-relaxed">
+          💬 Понять партнёра — значит увидеть его «заводские настройки», а не злой умысел. Раздел <button onClick={() => scrollTo('partner')} className="text-[#9E8B45] font-medium hover:underline">«Мы с партнёром»</button> поможет разобраться.
+        </p>
+      </div>
       <div className="flex flex-wrap gap-3">
         <button className="btn-primary" onClick={() => scrollTo('about-me')}>
-          Открыть мой тип личности →
+          Мой портрет →
         </button>
         <button className="btn-outline" onClick={() => scrollTo('partner')}>
-          С партнёром
+          Мы с партнёром
         </button>
         <button className="btn-outline flex items-center gap-1.5" onClick={() => downloadReport(1)}>
           <Download size={13} /> Отчёт часть 1

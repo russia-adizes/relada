@@ -30,11 +30,10 @@ export default function PaywallModal({ onClose }: PaywallModalProps) {
 
           <div className="space-y-2">
             <h2 className="text-lg font-bold text-[#1A1918]">
-              Откройте стиль в отношениях
+              Узнайте себя в паре
             </h2>
             <p className="text-sm text-[#6B6560] leading-relaxed">
-              Узнайте, как вы проявляетесь рядом с близкими — и почему некоторые люди
-              понимают вас с полуслова, а другие нет.
+              Вторая часть теста раскрывает, как вы ведёте себя именно в близких отношениях — и почему некоторые сценарии повторяются снова и снова.
             </p>
           </div>
 

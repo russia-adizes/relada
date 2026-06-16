@@ -11,9 +11,9 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { id: 'type', label: '👤 Тип личности' },
-  { id: 'style', label: '🔒 Стиль в отношениях' },
-  { id: 'role', label: '🔒 Роль в семье' },
+  { id: 'type', label: '👤 Мой тип' },
+  { id: 'style', label: '💬 Стиль в паре' },
+  { id: 'role', label: '🏠 В семье' },
 ]
 
 const VALUES = [
@@ -48,9 +48,9 @@ export default function AboutMe() {
           <span className="text-2xl">🔍</span>
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-[#1A1918]">Здесь будет ваш психологический портрет</h2>
+          <h2 className="text-lg font-semibold text-[#1A1918]">Здесь будет ваш портрет в отношениях</h2>
           <p className="text-sm text-[#6B6560] mt-2 max-w-xs mx-auto leading-relaxed">
-            Пройдите тест PAEI, чтобы узнать свой тип личности, стиль в отношениях и роль в семье.
+            Пройдите тест RELADA, чтобы понять свой тип, стиль в паре и как вы проявляетесь рядом с близкими.
           </p>
         </div>
         <button
@@ -105,7 +105,7 @@ export default function AboutMe() {
         {activeTab === 'type' && (
           <div className="space-y-4">
             <div className="card space-y-3">
-              <h3 className="text-base font-semibold text-[#1A1918]">Кто я по сути</h3>
+              <h3 className="text-base font-semibold text-[#1A1918]">Как я устроена</h3>
               <p className="text-sm text-[#6B6560] leading-relaxed">
                 Вы — человек действия с предпринимательским складом ума. Вы быстро принимаете решения,
                 ориентируетесь на результат и не боитесь брать на себя инициативу. Вам важно видеть
@@ -145,7 +145,7 @@ export default function AboutMe() {
             </div>
 
             <div className="card space-y-3">
-              <h3 className="text-base font-semibold text-[#1A1918]">Что меня перегружает</h3>
+              <h3 className="text-base font-semibold text-[#1A1918]">Что меня истощает</h3>
               <div className="space-y-2">
                 {OVERLOADS.map((o) => (
                   <div key={o} className="card-inner">
@@ -159,8 +159,25 @@ export default function AboutMe() {
 
         {/* Content — Style tab (unlocked) */}
         {activeTab === 'style' && relationshipStyle && (
-          <div className="card text-center py-12 text-[#6B6560]">
-            <p className="text-sm">Этот раздел находится в разработке.</p>
+          <div className="space-y-4">
+            <div className="card space-y-3">
+              <h3 className="text-base font-semibold text-[#1A1918]">Как вы проявляетесь в паре</h3>
+              <p className="text-sm text-[#6B6560] leading-relaxed">
+                В близких отношениях вы склонны брать инициативу — видите, что нужно сделать, и делаете. Иногда партнёр воспринимает это как давление, хотя вы просто хотите двигаться вперёд.
+              </p>
+            </div>
+            <div className="card space-y-3">
+              <h3 className="text-base font-semibold text-[#1A1918]">Откуда берутся ссоры</h3>
+              <p className="text-sm text-[#6B6560] leading-relaxed">
+                Чаще всего конфликт возникает не из-за злого умысла, а из-за разного темпа. Вы хотите решить прямо сейчас — партнёр хочет сначала осмыслить. Это не противостояние, это разные языки.
+              </p>
+            </div>
+            <div className="card space-y-3">
+              <h3 className="text-base font-semibold text-[#1A1918]">Что помогает</h3>
+              <p className="text-sm text-[#6B6560] leading-relaxed">
+                Назвать вслух, что вам важно — без ожидания, что партнёр догадается. И дать ему время, не интерпретируя паузу как равнодушие.
+              </p>
+            </div>
           </div>
         )}
       </div>

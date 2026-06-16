@@ -152,20 +152,20 @@ function Part1ResultScreen({
       {accessLevel === 'full' ? (
         <>
           <div className="w-full max-w-xs bg-[#9E8B45]/10 rounded-xl p-4 mb-4 text-left">
-            <p className="text-sm font-semibold text-[#1A1918]">🔓 Вторая часть открыта</p>
-            <p className="text-xs text-[#6B6560] mt-1">Узнайте свой стиль в отношениях прямо сейчас.</p>
+            <p className="text-sm font-semibold text-[#1A1918]">🔓 Узнайте свой стиль в паре прямо сейчас.</p>
+            <p className="text-xs text-[#6B6560] mt-1">Как вы ведёте себя рядом с близкими — и где рождаются повторяющиеся ссоры.</p>
           </div>
           <button onClick={onContinue} className="w-full max-w-xs py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors mb-3">
-            Пройти часть 2 →
+            Перейти к отношениям →
           </button>
         </>
       ) : (
         <>
           <div className="w-full max-w-xs border border-[#E8E4DC] rounded-xl p-4 mb-4 text-left space-y-1">
-            <p className="text-sm font-semibold text-[#1A1918]">Хотите узнать больше?</p>
-            <p className="text-xs text-[#6B6560]">Откройте вторую часть — стиль в отношениях и совместимость с партнёром.</p>
+            <p className="text-sm font-semibold text-[#1A1918]">Узнайте себя в отношениях</p>
+            <p className="text-xs text-[#6B6560]">Как вы ведёте себя рядом с партнёром — и где рождаются повторяющиеся ссоры.</p>
             <button onClick={() => setShowUpgrade(true)} className="text-sm text-[#9E8B45] font-semibold mt-1 hover:opacity-80">
-              Открыть за 700 ₽ →
+              Открыть стиль в паре →
             </button>
           </div>
         </>
@@ -179,7 +179,7 @@ function Part1ResultScreen({
         Скачать отчёт PDF
       </button>
       <button onClick={onFinish} className="w-full max-w-xs py-3.5 rounded-xl border border-[#E8E4DC] text-[#6B6560] font-semibold text-sm hover:border-[#9E8B45] transition-colors">
-        Открыть мой профиль
+        В личный кабинет
       </button>
     </div>
   )
@@ -208,7 +208,7 @@ function Part2ResultScreen({
         <span className="text-3xl">💞</span>
       </div>
 
-      <p className="text-sm text-[#6B6560] mb-1">Ваш стиль в отношениях</p>
+      <p className="text-sm text-[#6B6560] mb-1">Ваш стиль в паре</p>
       <h1 className="text-5xl font-bold text-[#9E8B45] tracking-widest mb-2">
         {relationshipStyle}
       </h1>
@@ -235,7 +235,7 @@ function Part2ResultScreen({
         onClick={onFinish}
         className="w-full max-w-xs py-3.5 rounded-xl bg-[#9E8B45] text-white font-semibold text-sm hover:bg-[#8A7A3A] transition-colors"
       >
-        Открыть мой профиль →
+        Открыть мой кабинет →
       </button>
     </div>
   )
@@ -418,7 +418,7 @@ export default function Test() {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-[#6B6560]">
-                {isInPart2 ? 'Стиль в отношениях · ' : 'Тип личности · '}
+                {isInPart2 ? 'Ваш стиль в паре · ' : 'Ваш тип · '}
                 Вопрос {currentQ + 1} из {QUESTIONS.length}
               </span>
               <span className="text-xs text-[#6B6560]">{Math.round(progress)}%</span>
@@ -437,7 +437,7 @@ export default function Test() {
       <div className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-5">
         <div>
           <p className="text-xs text-[#9E8B45] font-medium uppercase tracking-wide mb-2">
-            Расположите от наиболее к наименее характерному
+            Что вам ближе? Расставьте по порядку
           </p>
           <h2 className="text-lg font-semibold text-[#1A1918] leading-snug">
             {question.text}
@@ -458,7 +458,7 @@ export default function Test() {
         </DndContext>
 
         <p className="text-xs text-[#6B6560] text-center">
-          Перетащите варианты: сверху — самый подходящий, снизу — наименее
+          Перетащите: сверху — то, что про вас, снизу — наименее
         </p>
       </div>
 

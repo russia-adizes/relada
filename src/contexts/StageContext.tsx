@@ -32,6 +32,14 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
   async function refreshProfile() {
     if (!user) return
 
+    if (user.id === 'demo-user') {
+      setUserName('Демо')
+      setPersonalityType('PE')
+      setRelationshipStyle('EI')
+      setAccessLevelState('full')
+      return
+    }
+
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
 
@@ -78,7 +86,7 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
 
   async function setAccessLevel(level: AccessLevel) {
     setAccessLevelState(level)
-    if (user) {
+    if (user && user.id !== 'demo-user') {
       await supabase.from('profiles').update({ access_level: level }).eq('id', user.id)
     }
   }

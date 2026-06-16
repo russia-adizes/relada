@@ -2,6 +2,17 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
+export const DEMO_USER_ID = 'demo-user'
+
+const DEMO_USER = {
+  id: DEMO_USER_ID,
+  email: 'demo@relada.ru',
+  user_metadata: { name: 'Демо' },
+  app_metadata: {},
+  aud: 'authenticated',
+  created_at: '',
+} as unknown as User
+
 interface AuthContextType {
   user: User | null
   loading: boolean
@@ -15,6 +26,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (localStorage.getItem('relada_demo') === 'true') {
+      setUser(DEMO_USER)
+      setLoading(false)
+      return
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       setLoading(false)
@@ -28,6 +45,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   async function signOut() {
+    if (localStorage.getItem('relada_demo') === 'true') {
+      localStorage.removeItem('relada_demo')
+      setUser(null)
+      return
+    }
     await supabase.auth.signOut()
   }
 

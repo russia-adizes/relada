@@ -11,10 +11,10 @@ export default function Partner() {
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-xl font-bold text-[#1A1918]">Сравнение с партнёром</h2>
+          <h2 className="text-xl font-bold text-[#1A1918]">Вы говорите на разных языках?</h2>
           <p className="text-sm text-[#6B6560] leading-relaxed max-w-sm mx-auto">
-            Когда у вас будет личная картина, можно будет посмотреть, как вы усиливаете друг
-            друга и где попадаете в повторяющиеся сценарии.
+            Когда узнаете свой тип и тип партнёра — станет понятно, где вы усиливаете друг друга,
+            а где рождаются одни и те же ссоры.
           </p>
         </div>
 
