@@ -311,23 +311,25 @@ export default function Test() {
 
     setPersonalityTypeDirect(personalityType)
 
-    const { data: { session } } = await supabase.auth.getSession()
-    const uid = session?.user?.id ?? user?.id
+    const uid = user?.id
     if (uid) localStorage.setItem(`relada_pt_${uid}`, personalityType)
     localStorage.setItem('relada_scores1', JSON.stringify(scores))
 
     setPart1Result({ personalityType, scores })
 
-    if (uid) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ personality_type: personalityType })
-        .eq('id', uid)
-      if (error) {
-        const { error: e2 } = await supabase
+    if (uid && uid !== 'local-user') {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { error } = await supabase
           .from('profiles')
-          .upsert({ id: uid, personality_type: personalityType })
-        if (e2) setPart1Result((prev) => prev ? { ...prev, saveError: e2.message } : prev)
+          .update({ personality_type: personalityType })
+          .eq('id', uid)
+        if (error) {
+          const { error: e2 } = await supabase
+            .from('profiles')
+            .upsert({ id: uid, personality_type: personalityType })
+          if (e2) setPart1Result((prev) => prev ? { ...prev, saveError: e2.message } : prev)
+        }
       }
     }
   }
@@ -343,23 +345,25 @@ export default function Test() {
 
     setRelationshipStyleDirect(relationshipStyle)
 
-    const { data: { session } } = await supabase.auth.getSession()
-    const uid = session?.user?.id ?? user?.id
+    const uid = user?.id
     if (uid) localStorage.setItem(`relada_rs_${uid}`, relationshipStyle)
     localStorage.setItem('relada_scores2', JSON.stringify(scores))
 
     setPart2Result({ relationshipStyle, scores })
 
-    if (uid) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ relationship_style: relationshipStyle })
-        .eq('id', uid)
-      if (error) {
-        const { error: e2 } = await supabase
+    if (uid && uid !== 'local-user') {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        const { error } = await supabase
           .from('profiles')
-          .upsert({ id: uid, relationship_style: relationshipStyle })
-        if (e2) setPart2Result((prev) => prev ? { ...prev, saveError: e2.message } : prev)
+          .update({ relationship_style: relationshipStyle })
+          .eq('id', uid)
+        if (error) {
+          const { error: e2 } = await supabase
+            .from('profiles')
+            .upsert({ id: uid, relationship_style: relationshipStyle })
+          if (e2) setPart2Result((prev) => prev ? { ...prev, saveError: e2.message } : prev)
+        }
       }
     }
   }

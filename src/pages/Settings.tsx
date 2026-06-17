@@ -13,9 +13,11 @@ export default function Settings() {
 
   async function handleSaveName() {
     if (!user) return
-    setNameLoading(true)
-    await supabase.from('profiles').update({ name }).eq('id', user.id)
-    setNameLoading(false)
+    if (user.id !== 'local-user') {
+      setNameLoading(true)
+      await supabase.from('profiles').update({ name }).eq('id', user.id)
+      setNameLoading(false)
+    }
     setNameSaved(true)
     setTimeout(() => setNameSaved(false), 2000)
   }
@@ -30,6 +32,11 @@ export default function Settings() {
     }
     if (newPassword.length < 6) {
       setMessage({ text: 'Пароль должен быть не менее 6 символов', error: true })
+      return
+    }
+    if (user?.id === 'local-user') {
+      setMessage({ text: 'Для тестового аккаунта смена пароля недоступна', error: true })
+      setTimeout(() => setMessage(null), 3000)
       return
     }
     setLoading(true)
