@@ -32,11 +32,13 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
   async function refreshProfile() {
     if (!user) return
 
-    if (user.id === 'demo-user') {
-      setUserName('Демо')
-      setPersonalityType('PE')
-      setRelationshipStyle('EI')
-      setAccessLevelState('full')
+    if (user.id === 'local-user') {
+      setUserName('Relada')
+      const pt = localStorage.getItem(`relada_pt_${user.id}`) || ''
+      const rs = localStorage.getItem(`relada_rs_${user.id}`) || ''
+      setPersonalityType(pt)
+      setRelationshipStyle(rs)
+      setAccessLevelState(pt ? (rs ? 'full' : 'basic') : 'none')
       return
     }
 
@@ -79,14 +81,14 @@ export function StageProvider({ children }: { children: React.ReactNode }) {
 
   async function setStage(newStage: Stage) {
     setStageState(newStage)
-    if (user) {
+    if (user && user.id !== 'local-user') {
       await supabase.from('profiles').update({ stage: newStage }).eq('id', user.id)
     }
   }
 
   async function setAccessLevel(level: AccessLevel) {
     setAccessLevelState(level)
-    if (user && user.id !== 'demo-user') {
+    if (user && user.id !== 'local-user') {
       await supabase.from('profiles').update({ access_level: level }).eq('id', user.id)
     }
   }
