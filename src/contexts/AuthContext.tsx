@@ -2,12 +2,12 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
-export const DEMO_USER_ID = 'demo-user'
+export const LOCAL_USER_SESSION_KEY = 'relada_user'
 
-const DEMO_USER = {
-  id: DEMO_USER_ID,
-  email: 'demo@relada.ru',
-  user_metadata: { name: 'Демо' },
+const LOCAL_USER = {
+  id: 'local-user',
+  email: 'sofya@relada.ru',
+  user_metadata: { name: 'Sofya' },
   app_metadata: {},
   aud: 'authenticated',
   created_at: '',
@@ -26,13 +26,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (localStorage.getItem('relada_demo') === 'true') {
-      setUser(DEMO_USER)
+    if (sessionStorage.getItem(LOCAL_USER_SESSION_KEY) === 'true') {
+      setUser(LOCAL_USER)
       setLoading(false)
       return
     }
 
+    const timeout = setTimeout(() => setLoading(false), 5000)
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(timeout)
       setUser(session?.user ?? null)
       setLoading(false)
     })
@@ -45,8 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   async function signOut() {
-    if (localStorage.getItem('relada_demo') === 'true') {
-      localStorage.removeItem('relada_demo')
+    if (sessionStorage.getItem(LOCAL_USER_SESSION_KEY) === 'true') {
+      sessionStorage.removeItem(LOCAL_USER_SESSION_KEY)
       setUser(null)
       return
     }

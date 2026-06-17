@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { LOCAL_USER_SESSION_KEY } from '../contexts/AuthContext'
 
 type Mode = 'login' | 'register' | 'forgot'
 type Role = 'user' | 'admin'
@@ -8,6 +9,9 @@ type Role = 'user' | 'admin'
 const ADMIN_LOGIN = 'admin'
 const ADMIN_PASSWORD = 'relada2026'
 const ADMIN_SESSION_KEY = 'relada_admin'
+
+const USER_LOGIN = 'relada'
+const USER_PASSWORD = 'relada2026'
 
 export default function Auth() {
   const navigate = useNavigate()
@@ -61,6 +65,17 @@ export default function Auth() {
       else setMessage('Проверьте почту — мы отправили письмо с подтверждением.')
 
     } else if (mode === 'login') {
+      if (email.trim().toLowerCase() === USER_LOGIN && password === USER_PASSWORD) {
+        sessionStorage.setItem(LOCAL_USER_SESSION_KEY, 'true')
+        navigate('/')
+        setLoading(false)
+        return
+      }
+      if (!email.includes('@')) {
+        setError('Неверный логин или пароль')
+        setLoading(false)
+        return
+      }
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError('Неверный email или пароль')
 
@@ -117,7 +132,7 @@ export default function Auth() {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#E8E4DC] p-6 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} noValidate className="bg-white rounded-2xl border border-[#E8E4DC] p-6 flex flex-col gap-4">
           {role === 'admin' ? (
             <>
               <div>
@@ -238,16 +253,6 @@ export default function Auth() {
             {loading ? 'Загрузка...' : 'Войти'}
           </button>
         </form>
-
-        <div className="mt-4 text-center">
-          <button
-            type="button"
-            onClick={() => { localStorage.setItem('relada_demo', 'true'); window.location.href = '/' }}
-            className="text-xs text-[#6B6560]/60 hover:text-[#9E8B45] transition-colors underline underline-offset-2"
-          >
-            Войти как демо
-          </button>
-        </div>
 
         {role === 'user' && (
           <p className="text-center text-xs text-[#6B6560] mt-4">
