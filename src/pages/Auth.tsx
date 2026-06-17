@@ -67,8 +67,7 @@ export default function Auth() {
     } else if (mode === 'login') {
       if (email.trim().toLowerCase() === USER_LOGIN && password === USER_PASSWORD) {
         sessionStorage.setItem(LOCAL_USER_SESSION_KEY, 'true')
-        navigate('/')
-        setLoading(false)
+        window.location.href = '/'
         return
       }
       if (!email.includes('@')) {
