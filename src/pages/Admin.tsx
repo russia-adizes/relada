@@ -256,6 +256,22 @@ function AdminPanel() {
 
           {section === 'overview' && (
             <div>
+              <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E8E4DC', padding: '16px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1A1918' }}>Тестовый пользователь (relada)</div>
+                  <div style={{ fontSize: 12, color: '#6B6560', marginTop: 2 }}>Сбросить localStorage — новый человек начнёт с нуля</div>
+                </div>
+                <button
+                  onClick={() => {
+                    ['relada_scores1', 'relada_scores2', 'relada_pt_local-user', 'relada_rs_local-user'].forEach(k => localStorage.removeItem(k))
+                    alert('Сброшено! Теперь можно заходить как новый.')
+                  }}
+                  style={{ background: '#FEF2F2', color: '#EF4444', border: '1px solid #FCA5A5', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  Сбросить тест
+                </button>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
                 {[
                   { label: 'Всего пользователей', value: stats.total, sub: 'зарегистрированы' },
